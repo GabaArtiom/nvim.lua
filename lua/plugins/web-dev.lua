@@ -45,11 +45,11 @@ return {
 
         -- Keep emmet for Vue + HTML/CSS
         emmet_ls = {
-          filetypes = { "html", "css", "scss", "sass", "less", "vue" },
+          filetypes = { "html", "css", "scss", "sass", "less", "vue", "php" },
         },
 
         html = {
-          filetypes = { "html", "templ" },
+          filetypes = { "html", "templ", "php" },
         },
         cssls = {
           filetypes = { "css", "scss", "sass", "less" },
@@ -238,12 +238,12 @@ return {
   -- Emmet support for HTML/CSS
   {
     "mattn/emmet-vim",
-    ft = { "html", "css", "scss", "sass", "vue", "jsx", "tsx" },
+    ft = { "html", "css", "scss", "sass", "vue", "jsx", "tsx", "php" },
     config = function()
       vim.g.user_emmet_leader_key = "<C-z>"
       vim.g.user_emmet_install_global = 0
       vim.cmd([[
-        autocmd FileType html,css,scss,sass,vue,jsx,tsx EmmetInstall
+        autocmd FileType html,css,scss,sass,vue,jsx,tsx,php EmmetInstall
       ]])
     end,
   },

@@ -183,4 +183,5 @@ local shared_snippets = {
 return {
   html = shared_snippets,
   php = shared_snippets,
+  vue = shared_snippets,
 }

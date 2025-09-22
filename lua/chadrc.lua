@@ -2,7 +2,7 @@ local M = {}
 
 -- Base46 configuration (2025 structure)
 M.base46 = {
-  theme = "doomchad",
+  theme = "chadracula-evondev",
   transparency = false,
 
   -- Color overrides for better customization
@@ -13,7 +13,7 @@ M.base46 = {
 
   -- Theme picker configuration
   theme_toggle = {
-    "doomchad",
+    "chadracula-evondev",
     "tokyonight",
     "catppuccin",
     "nord",

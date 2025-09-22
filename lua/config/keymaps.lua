@@ -73,25 +73,8 @@ end, { desc = "Theme picker (Volt UI)" })
 
 -- File-type specific shortcuts will be set via autocmds
 
--- Quick save and format
-map("n", "<C-s>", function()
-  local ft = vim.bo.filetype
-
-  -- Use Conform for CSS/SCSS to get stylelint + prettier
-  if ft == "scss" or ft == "sass" or ft == "css" then
-    local conform_ok, conform = pcall(require, "conform")
-    if conform_ok then
-      conform.format({ async = false, lsp_fallback = true })
-    else
-      vim.lsp.buf.format({ async = false })
-    end
-  else
-    -- Use standard formatting for other files
-    vim.lsp.buf.format({ async = false })
-  end
-
-  vim.cmd("write")
-end, { desc = "Save and format" })
+-- Quick save without formatting
+map("n", "<C-s>", "<cmd>write<cr>", { desc = "Save file" })
 
 -- Better indenting
 map("v", "<", "<gv", { desc = "Indent left and reselect" })
@@ -125,6 +108,9 @@ map("n", "<C-Down>", "<cmd>resize +5<CR>", { desc = "Expand window height" })
 -- insert mode: Ctrl-j -> выход из insert и вставка новой строки
 vim.keymap.set("i", "<C-j>", "<Esc>o", { noremap = true, silent = true, desc = "Insert new line below" })
 vim.keymap.set("i", "jj", "<Esc>", { noremap = true, silent = true, desc = "Exit insert mode" })
+
+-- Сохранить все файлы
+map("n", "<leader>ww", "<cmd>wa<cr>", { desc = "Save all files" })
 
 -- Переключение между буферами
 vim.keymap.set("n", "<S-h>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Prev buffer" })

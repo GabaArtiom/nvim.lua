@@ -7,13 +7,6 @@
 -- Or remove existing autocmds by their group name (which is prefixed with `lazyvim_` for the defaults)
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
 
--- Auto-format on save for web development files
-vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = { "*.js", "*.jsx", "*.ts", "*.tsx", "*.vue", "*.css", "*.scss", "*.sass", "*.html", "*.php" },
-  callback = function()
-    vim.lsp.buf.format({ async = false })
-  end,
-})
 
 -- Set specific tab settings for web development
 vim.api.nvim_create_autocmd("FileType", {
@@ -124,3 +117,4 @@ vim.api.nvim_create_autocmd("FileType", {
     map("i", "<C-n>", "<CR>&<Space>", { desc = "SCSS nesting", buffer = true })
   end,
 })
+
