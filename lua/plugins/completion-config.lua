@@ -19,6 +19,8 @@ return {
         per_filetype = {
           html = { "lsp", "snippets", "buffer", "path" },
           vue = { "lsp", "snippets", "buffer", "path" },
+          scss = { "lsp", "snippets", "buffer", "path" },
+          css = { "lsp", "snippets", "buffer", "path" },
         },
         providers = {
           snippets = {
@@ -29,8 +31,10 @@ return {
               local before_cursor = line:sub(1, col)
               local after_cursor = line:sub(col + 1)
 
-              -- Отключаем сниппеты между скобками
-              if before_cursor:match("{%s*$") and after_cursor:match("^%s*}") then
+              -- Отключаем сниппеты внутри любых скобок если ничего не напечатано
+              if (before_cursor:match("{%s*$") and after_cursor:match("^%s*}")) or
+                 (before_cursor:match("%(%s*$") and after_cursor:match("^%s*%)")) or
+                 (before_cursor:match("%[%s*$") and after_cursor:match("^%s*%]")) then
                 return false
               end
 
@@ -39,6 +43,21 @@ return {
           },
           lsp = {
             score_offset = 0, -- Стандартный LSP приоритет
+            enabled = function()
+              local line = vim.api.nvim_get_current_line()
+              local col = vim.api.nvim_win_get_cursor(0)[2]
+              local before_cursor = line:sub(1, col)
+              local after_cursor = line:sub(col + 1)
+
+              -- Отключаем LSP внутри любых скобок если ничего не напечатано
+              if (before_cursor:match("{%s*$") and after_cursor:match("^%s*}")) or
+                 (before_cursor:match("%(%s*$") and after_cursor:match("^%s*%)")) or
+                 (before_cursor:match("%[%s*$") and after_cursor:match("^%s*%]")) then
+                return false
+              end
+
+              return true
+            end,
             transform_items = function(ctx, items)
               local blacklist = require('config.snippet-blacklist')
               local filtered_items = {}
@@ -47,6 +66,13 @@ return {
                 -- Проверяем blacklist для снипетов из LSP
                 local is_blacklisted = false
                 if item.kind == vim.lsp.protocol.CompletionItemKind.Snippet then
+                  for _, blocked in ipairs(blacklist) do
+                    if item.label == blocked then
+                      is_blacklisted = true
+                      break
+                    end
+                  end
+                else
                   for _, blocked in ipairs(blacklist) do
                     if item.label == blocked then
                       is_blacklisted = true
@@ -99,6 +125,7 @@ return {
         trigger = {
           -- Отключаем автоматический показ при вводе символов
           show_on_insert_on_trigger_character = false,
+          show_on_x_blocked_trigger_characters = { '{', '}', '(', ')', '[', ']', '.', ':', ';' },
         },
       },
 
@@ -109,15 +136,42 @@ return {
             -- Твои приоритетные снипеты
             local my_snippets = {'dv', 'pv', 'mcus', 'mc', 'mc5', 'mc7', 'mc9', 'mc12'}
 
+            -- Vue директивы должны быть в приоритете
+            local vue_directives = {'v-if', 'v-else', 'v-else-if', 'v-for', 'v-show', 'v-model', 'v-bind', 'v-on'}
+
             local a_is_my_snippet = a.source_name == "snippets" and vim.tbl_contains(my_snippets, a.label or "")
             local b_is_my_snippet = b.source_name == "snippets" and vim.tbl_contains(my_snippets, b.label or "")
 
-            -- Если один твой снипет, а другой нет - твой выше
-            if a_is_my_snippet and not b_is_my_snippet then
+            local a_is_vue_directive = vim.tbl_contains(vue_directives, a.label or "")
+            local b_is_vue_directive = vim.tbl_contains(vue_directives, b.label or "")
+
+            -- LSP (CSS свойства) должны быть выше твоих сниппетов в CSS контексте
+            local filetype = vim.bo.filetype
+            if filetype == "css" or filetype == "scss" then
+              if a.source_name == "lsp" and b_is_my_snippet then
+                return true
+              end
+              if b.source_name == "lsp" and a_is_my_snippet then
+                return false
+              end
+            end
+
+            -- Vue директивы всегда в приоритете над HTML тегами
+            if a_is_vue_directive and not b_is_vue_directive then
               return true
             end
-            if b_is_my_snippet and not a_is_my_snippet then
+            if b_is_vue_directive and not a_is_vue_directive then
               return false
+            end
+
+            -- Если один твой снипет, а другой нет - твой выше (но НЕ в CSS)
+            if not (filetype == "css" or filetype == "scss") then
+              if a_is_my_snippet and not b_is_my_snippet then
+                return true
+              end
+              if b_is_my_snippet and not a_is_my_snippet then
+                return false
+              end
             end
 
             return nil -- Стандартная сортировка
