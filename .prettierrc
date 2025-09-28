@@ -1,4 +1,5 @@
 {
+  "plugins": ["@prettier/plugin-php"],
   "printWidth": 120,
   "tabWidth": 2,
   "useTabs": false,
@@ -52,8 +53,11 @@
       "files": "*.php",
       "options": {
         "printWidth": 120,
-        "tabWidth": 4,
-        "useTabs": false
+        "tabWidth": 2,
+        "useTabs": false,
+        "singleQuote": true,
+        "braceStyle": "1tbs",
+        "phpVersion": "8.4"
       }
     }
   ]

@@ -22,17 +22,41 @@ return {
         ["markdown.mdx"] = { "prettierd", "prettier" },
         ["graphql"] = { "prettierd", "prettier" },
         ["handlebars"] = { "prettierd", "prettier" },
-        ["php"] = { "php_cs_fixer" },
+        ["php"] = { "blade-formatter", "prettier" },
       },
       formatters = {
-        php_cs_fixer = {
-          command = "php-cs-fixer",
+        ["blade-formatter"] = {
+          command = "blade-formatter",
+          args = {
+            "--stdin",
+            "--indent-size=2",
+            "--wrap-line-length=120",
+            "--wrap-attributes=force-expand-multiline"
+          },
+          stdin = true,
+        },
+        ["php-cs-fixer"] = {
+          command = vim.fn.expand("~/.local/bin/php-cs-fixer"),
           args = {
             "fix",
-            "--rules=@PSR12",
-            "$FILENAME",
+            "--rules=@PSR12,@Symfony",
+            "--using-cache=no",
+            "$FILENAME"
           },
           stdin = false,
+        },
+        prettier = {
+          command = vim.fn.expand("~/.local/share/nvim/mason/bin/prettier"),
+          args = function(_, ctx)
+            local args = { "--stdin-filepath", "$FILENAME" }
+            -- Explicitly set parser for PHP files
+            if ctx.filetype == "php" then
+              table.insert(args, "--parser")
+              table.insert(args, "php")
+            end
+            return args
+          end,
+          stdin = true,
         },
         stylelint = {
           command = "stylelint",

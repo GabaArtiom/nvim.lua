@@ -24,12 +24,21 @@ end, { desc = "Format file" })
 map("n", "<A-l>", function()
   local ft = vim.bo.filetype
 
-  -- Format first
-  local conform_ok, conform = pcall(require, "conform")
-  if conform_ok then
-    conform.format({ async = false, lsp_fallback = true })
+  -- Format first - for PHP, use conform with blade-formatter for better HTML handling
+  if ft == "php" then
+    local conform_ok, conform = pcall(require, "conform")
+    if conform_ok then
+      conform.format({ async = false, lsp_fallback = true })
+    else
+      vim.lsp.buf.format({ async = false })
+    end
   else
-    vim.lsp.buf.format({ async = false })
+    local conform_ok, conform = pcall(require, "conform")
+    if conform_ok then
+      conform.format({ async = false, lsp_fallback = true })
+    else
+      vim.lsp.buf.format({ async = false })
+    end
   end
 
   -- Add spacing between CSS/SCSS elements
@@ -115,6 +124,36 @@ map("n", "<leader>ww", "<cmd>wa<cr>", { desc = "Save all files" })
 -- Переключение между буферами
 vim.keymap.set("n", "<S-h>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Prev buffer" })
 vim.keymap.set("n", "<S-l>", "<cmd>BufferLineCycleNext<CR>", { desc = "Next buffer" })
+
+-- Debug formatters
+map("n", "<leader>fd", function()
+  local conform = require("conform")
+  local filetype = vim.bo.filetype
+  local formatters = conform.list_formatters_for_buffer()
+
+  print("Filetype: " .. filetype)
+  print("Available formatters:")
+  for _, formatter in ipairs(formatters) do
+    print("  - " .. formatter.name .. " (" .. (formatter.available and "available" or "not available") .. ")")
+  end
+
+  if #formatters == 0 then
+    print("No formatters configured for filetype: " .. filetype)
+  end
+end, { desc = "Debug formatters" })
+
+-- Alternative PHP formatting with php-cs-fixer (for pure PHP files)
+map("n", "<leader>fp", function()
+  if vim.bo.filetype == "php" then
+    local conform = require("conform")
+    conform.format({
+      formatters = { "php-cs-fixer" },
+      async = false,
+    })
+  else
+    print("php-cs-fixer is only for PHP files")
+  end
+end, { desc = "Format PHP with php-cs-fixer" })
 
 -- Перенос буферов
 vim.keymap.set("n", "<C-S-h>", "<cmd>BufferLineMovePrev<CR>", { desc = "Move buffer left" })
