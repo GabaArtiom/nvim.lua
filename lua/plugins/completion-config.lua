@@ -127,6 +127,11 @@ return {
           show_on_insert_on_trigger_character = false,
           show_on_x_blocked_trigger_characters = { '{', '}', '(', ')', '[', ']', '.', ':', ';' },
         },
+        menu = {
+          auto_show = function(ctx)
+            return ctx.mode ~= 'cmdline'
+          end,
+        },
       },
 
       -- Fuzzy сортировка для приоритизации твоих снипетов

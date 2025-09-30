@@ -9,21 +9,10 @@ return {
         vuels = {
           enabled = false,
         },
-        vtsls = {
-          filetypes = {
-            "javascript",
-            "javascriptreact",
-            "javascript.jsx",
-            "typescript",
-            "typescriptreact",
-            "typescript.tsx",
-            "vue",
-          },
-        },
 
-        -- Enable volar as primary Vue language server
+        -- Enable volar in TAKEOVER MODE (handles everything including TS/JS)
         volar = {
-          filetypes = { "vue" },
+          filetypes = { "vue", "typescript", "javascript", "javascriptreact", "typescriptreact" },
           init_options = {
             vue = {
               hybridMode = false,
@@ -38,6 +27,22 @@ return {
                 vitePress = {
                   supportMdFile = true,
                 },
+              },
+            },
+            typescript = {
+              preferences = {
+                importModuleSpecifier = "relative",
+              },
+              suggest = {
+                autoImports = true,
+              },
+            },
+            javascript = {
+              preferences = {
+                importModuleSpecifier = "relative",
+              },
+              suggest = {
+                autoImports = true,
               },
             },
           },

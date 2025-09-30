@@ -71,6 +71,19 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     map("n", "<leader>pa", "<cmd>!php -l %<cr>", { desc = "Check PHP syntax", buffer = true })
     map("n", "<leader>pr", "<cmd>!php %<cr>", { desc = "Run PHP file", buffer = true })
+
+    -- Auto-add blank line inside PHP tags on Enter
+    map("i", "<CR>", function()
+      local line = vim.api.nvim_get_current_line()
+      local col = vim.api.nvim_win_get_cursor(0)[2]
+      local before = line:sub(1, col)
+      local after = line:sub(col + 1)
+
+      if before:match("%<%?php%s*$") and after:match("^%s*%?>") then
+        return "<CR><CR><Up><Tab>"
+      end
+      return "<CR>"
+    end, { expr = true, buffer = true, desc = "Smart PHP tag newline" })
   end,
 })
 
@@ -79,6 +92,23 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = "vue",
   callback = function()
     map("n", "<leader>vc", "<cmd>VueCompile<cr>", { desc = "Compile Vue component", buffer = true })
+
+    -- Автоматически показываем completion при вводе в template
+    vim.api.nvim_create_autocmd("TextChangedI", {
+      buffer = 0,
+      callback = function()
+        local line = vim.api.nvim_get_current_line()
+        local col = vim.api.nvim_win_get_cursor(0)[2]
+        local before = line:sub(1, col)
+
+        -- Если вводим тег (после < и есть буквы)
+        if before:match("<%a+$") then
+          vim.schedule(function()
+            require('blink.cmp').show()
+          end)
+        end
+      end,
+    })
   end,
 })
 
