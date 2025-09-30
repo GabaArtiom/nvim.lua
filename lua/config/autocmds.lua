@@ -52,6 +52,14 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
+-- Auto-save on focus lost
+vim.api.nvim_create_autocmd("FocusLost", {
+  pattern = "*",
+  callback = function()
+    vim.cmd("silent! wa")
+  end,
+})
+
 -- Remove trailing whitespace on save
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*",
