@@ -240,6 +240,24 @@ return {
     },
   },
 
+  -- vim-closetag для PHP файлов
+  {
+    "alvan/vim-closetag",
+    ft = { "php" },
+    config = function()
+      vim.g.closetag_filenames = "*.php"
+      vim.g.closetag_xhtml_filenames = "*.php"
+      vim.g.closetag_filetypes = "php"
+      vim.g.closetag_xhtml_filetypes = "php"
+      vim.g.closetag_emptyTags_caseSensitive = 1
+      vim.g.closetag_regions = {
+        ["php.embedded.html"] = "htmlTag",
+      }
+      vim.g.closetag_shortcut = ">"
+      vim.g.closetag_close_shortcut = ""
+    end,
+  },
+
   -- Emmet support for HTML/CSS
   {
     "mattn/emmet-vim",

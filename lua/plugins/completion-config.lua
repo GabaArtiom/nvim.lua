@@ -129,7 +129,25 @@ return {
         },
         menu = {
           auto_show = function(ctx)
-            return ctx.mode ~= 'cmdline'
+            if ctx.mode == 'cmdline' then
+              return false
+            end
+
+            -- Для PHP файлов проверяем контекст
+            if vim.bo.filetype == 'php' then
+              local line = vim.api.nvim_get_current_line()
+              local col = vim.api.nvim_win_get_cursor(0)[2]
+              local before_cursor = line:sub(1, col)
+              local after_cursor = line:sub(col + 1)
+
+              -- Отключаем автодополнение между открывающим и закрывающим HTML тегом
+              -- Например: <div>|</div>
+              if before_cursor:match(">%s*$") and after_cursor:match("^%s*</%w+>") then
+                return false
+              end
+            end
+
+            return true
           end,
         },
       },
@@ -193,7 +211,37 @@ return {
         ["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
         ["<C-j>"] = { "select_next", "fallback" },
         ["<C-k>"] = { "select_prev", "fallback" },
-        ["<CR>"] = { "accept", "fallback" },
+        ["<CR>"] = {
+          function(cmp)
+            -- Если completion menu видимо - принимаем выбор
+            if cmp.is_visible() then
+              return cmp.accept()
+            end
+
+            -- Для PHP файлов: проверяем HTML теги
+            if vim.bo.filetype == "php" then
+              local line = vim.api.nvim_get_current_line()
+              local col = vim.api.nvim_win_get_cursor(0)[2]
+              local before = line:sub(1, col)
+              local after = line:sub(col + 1)
+
+              -- Если между HTML тегами: <div>|</div>
+              if before:match(">%s*$") and after:match("^%s*</") then
+                vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><Esc>O", true, false, true), "n", false)
+                return
+              end
+
+              -- Если между PHP тегами: <?php | ?>
+              if before:match("%<%?php%s*$") and after:match("^%s*%?>") then
+                vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><CR><Up><Tab>", true, false, true), "n", false)
+                return
+              end
+            end
+
+            -- Обычный Enter
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR>", true, false, true), "n", false)
+          end,
+        },
       },
     },
   },

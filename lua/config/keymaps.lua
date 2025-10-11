@@ -119,7 +119,7 @@ vim.keymap.set("i", "<C-j>", "<Esc>o", { noremap = true, silent = true, desc = "
 vim.keymap.set("i", "jj", "<Esc>", { noremap = true, silent = true, desc = "Exit insert mode" })
 
 -- Сохранить все файлы
-map("n", "<leader>ww", "<cmd>wa<cr>", { desc = "Save all files" })
+map("n", "<leader>a", "<cmd>wa<cr>", { desc = "Save all files" })
 
 -- Переключение между буферами
 vim.keymap.set("n", "<S-h>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Prev buffer" })
