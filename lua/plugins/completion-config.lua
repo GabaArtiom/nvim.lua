@@ -218,13 +218,13 @@ return {
               return cmp.accept()
             end
 
-            -- Для PHP файлов: проверяем HTML теги
-            if vim.bo.filetype == "php" then
-              local line = vim.api.nvim_get_current_line()
-              local col = vim.api.nvim_win_get_cursor(0)[2]
-              local before = line:sub(1, col)
-              local after = line:sub(col + 1)
+            local line = vim.api.nvim_get_current_line()
+            local col = vim.api.nvim_win_get_cursor(0)[2]
+            local before = line:sub(1, col)
+            local after = line:sub(col + 1)
 
+            -- Для PHP файлов
+            if vim.bo.filetype == "php" then
               -- Если между HTML тегами: <div>|</div>
               if before:match(">%s*$") and after:match("^%s*</") then
                 vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><Esc>O", true, false, true), "n", false)
@@ -234,6 +234,23 @@ return {
               -- Если между PHP тегами: <?php | ?>
               if before:match("%<%?php%s*$") and after:match("^%s*%?>") then
                 vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><CR><Up><Tab>", true, false, true), "n", false)
+                return
+              end
+            end
+
+            -- Для Vue, HTML, SCSS, CSS и других файлов: между тегами создаем пустую строку
+            if vim.tbl_contains({"vue", "html", "scss", "css", "javascript", "typescript"}, vim.bo.filetype) then
+              -- Если между HTML тегами: <div>|</div> или template тегами
+              if before:match(">%s*$") and after:match("^%s*</") then
+                vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><Esc>O", true, false, true), "n", false)
+                return
+              end
+
+              -- Если между скобками: {|} или (|) или [|]
+              if (before:match("{%s*$") and after:match("^%s*}")) or
+                 (before:match("%(%s*$") and after:match("^%s*%)")) or
+                 (before:match("%[%s*$") and after:match("^%s*%]")) then
+                vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><Esc>O", true, false, true), "n", false)
                 return
               end
             end
