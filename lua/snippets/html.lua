@@ -178,6 +178,22 @@ local shared_snippets = {
     i(1),
     t(");"),
   }),
+
+  s("mgi", {
+    t("$"),
+    i(1),
+    t(" = my_get_image_id($"),
+    i(2),
+    t("['"),
+    rep(1), -- повторяет первый insert node
+    t("']);"),
+  }),
+
+  s("cp", {
+    t("<?php create_picture("),
+    i(1),
+    t(") ?>"),
+  }),
 }
 
 return {
