@@ -3,3 +3,6 @@ require("config.lazy")
 
 -- Load custom functions
 require("config.functions").setup()
+
+-- Load tab-split functionality
+require("config.tab-split")

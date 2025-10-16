@@ -104,6 +104,14 @@ map("t", "<C-l>", "<cmd>wincmd l<cr>", { desc = "Go to right window" })
 map("t", "<C-/>", "<cmd>close<cr>", { desc = "Hide terminal" })
 map("t", "<c-_>", "<cmd>close<cr>", { desc = "Hide terminal" })
 
+-- Floating terminal toggle
+map("n", "<C-;>", function()
+  require("config.functions").toggle_floating_terminal()
+end, { desc = "Toggle floating terminal" })
+map("t", "<C-;>", function()
+  require("config.functions").toggle_floating_terminal()
+end, { desc = "Toggle floating terminal" })
+
 -- Сохранить и выйти
 map("n", "<leader>qq", "<cmd>wqa<cr>", { desc = "Сохранить и выйти" })
 map("n", "<leader>QQ", "<cmd>qa!<cr>", { desc = "Выход без сохранений" })
