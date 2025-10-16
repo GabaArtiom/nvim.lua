@@ -82,8 +82,19 @@ end, { desc = "Theme picker (Volt UI)" })
 
 -- File-type specific shortcuts will be set via autocmds
 
--- Quick save without formatting
-map("n", "<C-s>", "<cmd>write<cr>", { desc = "Save file" })
+-- Quick save without formatting and preserve folds
+map("n", "<C-s>", function()
+  -- Сохраняем фолды и курсор
+  local view = vim.fn.winsaveview()
+
+  -- Сохраняем файл
+  vim.cmd("silent! write")
+
+  -- После небольшой задержки — восстанавливаем фолды
+  vim.defer_fn(function()
+    pcall(vim.fn.winrestview, view)
+  end, 50)
+end, { desc = "Save file without unfolding" })
 
 -- Better indenting
 map("v", "<", "<gv", { desc = "Indent left and reselect" })
