@@ -20,19 +20,15 @@ map("n", "<leader>ff", function()
   vim.lsp.buf.format({ async = true })
 end, { desc = "Format file" })
 
--- Alt+L for fast formatting with prettier and spacing
+-- Alt+L for fast formatting
 map("n", "<A-l>", function()
   local ft = vim.bo.filetype
 
-  -- Format first - for PHP, use conform with blade-formatter for better HTML handling
+  -- For PHP, use LSP formatter (same as leader+ff)
   if ft == "php" then
-    local conform_ok, conform = pcall(require, "conform")
-    if conform_ok then
-      conform.format({ async = false, lsp_fallback = true })
-    else
-      vim.lsp.buf.format({ async = false })
-    end
+    vim.lsp.buf.format({ async = false })
   else
+    -- For other files, use conform with prettier
     local conform_ok, conform = pcall(require, "conform")
     if conform_ok then
       conform.format({ async = false, lsp_fallback = true })
@@ -65,7 +61,7 @@ map("n", "<A-l>", function()
 
     vim.api.nvim_buf_set_lines(0, 0, -1, false, new_lines)
   end
-end, { desc = "Format with prettier and spacing" })
+end, { desc = "Format with LSP (PHP) or prettier" })
 
 
 map("v", "<A-l>", function()

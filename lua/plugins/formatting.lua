@@ -22,7 +22,7 @@ return {
         ["markdown.mdx"] = { "prettierd", "prettier" },
         ["graphql"] = { "prettierd", "prettier" },
         ["handlebars"] = { "prettierd", "prettier" },
-        ["php"] = { "blade-formatter", "prettier" },
+        ["php"] = { "prettier" },
       },
       formatters = {
         ["blade-formatter"] = {
