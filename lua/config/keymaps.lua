@@ -177,3 +177,21 @@ end, { desc = "Format PHP with php-cs-fixer" })
 -- Перенос буферов
 vim.keymap.set("n", "<C-S-h>", "<cmd>BufferLineMovePrev<CR>", { desc = "Move buffer left" })
 vim.keymap.set("n", "<C-S-l>", "<cmd>BufferLineMoveNext<CR>", { desc = "Move buffer right" })
+
+-- Перезагрузка конфигурации Neovim (без плагинов)
+map("n", "<leader>rr", function()
+  -- Очистка кеша только конфигов и сниппетов (не плагинов)
+  for name, _ in pairs(package.loaded) do
+    if name:match("^config") or name:match("^snippets") then
+      package.loaded[name] = nil
+    end
+  end
+
+  -- Перезагрузка основных конфигов
+  local config_path = vim.fn.stdpath("config") .. "/lua/config/"
+  dofile(config_path .. "options.lua")
+  dofile(config_path .. "keymaps.lua")
+  dofile(config_path .. "autocmds.lua")
+
+  vim.notify("Настройки перезагружены! (плагины не затронуты)", vim.log.levels.INFO)
+end, { desc = "Перезагрузить настройки (без плагинов)" })
