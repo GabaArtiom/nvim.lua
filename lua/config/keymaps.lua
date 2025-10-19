@@ -27,9 +27,15 @@ map("n", "<A-l>", function()
   -- Use conform for all files
   local conform_ok, conform = pcall(require, "conform")
   if conform_ok then
-    conform.format({ async = false, lsp_fallback = true })
+    -- For CSS/SCSS, use sync to ensure stylelint runs after prettier
+    local is_async = not (ft == "css" or ft == "scss" or ft == "sass")
+    conform.format({
+      async = is_async,
+      lsp_fallback = true,
+      timeout_ms = 3000,
+    })
   else
-    vim.lsp.buf.format({ async = false })
+    vim.lsp.buf.format({ async = true })
   end
 
   -- Add spacing between CSS/SCSS elements
@@ -60,7 +66,7 @@ end, { desc = "Format with LSP (PHP) or prettier" })
 
 
 map("v", "<A-l>", function()
-  vim.lsp.buf.format({ async = false })
+  vim.lsp.buf.format({ async = true })
 end, { desc = "Format selection" })
 
 -- CSS/SCSS color picker

@@ -4,15 +4,16 @@ return {
     "stevearc/conform.nvim",
     event = { "BufReadPre", "BufNewFile" },
     opts = {
+      log_level = vim.log.levels.DEBUG,
       formatters_by_ft = {
         ["javascript"] = { "prettierd", "prettier" },
         ["javascriptreact"] = { "prettierd", "prettier" },
         ["typescript"] = { "prettierd", "prettier" },
         ["typescriptreact"] = { "prettierd", "prettier" },
         ["vue"] = { "prettierd", "prettier" },
-        ["css"] = { "stylelint", "prettier" },
-        ["scss"] = { "stylelint", "prettier" },
-        ["sass"] = { "stylelint", "prettier" },
+        ["css"] = { "prettier", "stylelint" },
+        ["scss"] = { "prettier", "stylelint" },
+        ["sass"] = { "prettier", "stylelint" },
         ["less"] = { "prettier" },
         ["html"] = { "prettierd", "prettier" },
         ["json"] = { "prettierd", "prettier" },
@@ -51,7 +52,7 @@ return {
           stdin = true,
         },
         stylelint = {
-          command = "stylelint",
+          command = vim.fn.expand("~/.config/nvm/versions/node/v22.19.0/bin/stylelint"),
           args = {
             "--fix",
             "--stdin",

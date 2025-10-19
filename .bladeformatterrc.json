@@ -8,6 +8,6 @@
   "sortTailwindcssClasses": false,
   "noMultipleEmptyLines": true,
   "indentInnerHtml": false,
-  "noPhpSyntaxCheck": false,
+  "noPhpSyntaxCheck": true,
   "noSingleQuote": false
 }
