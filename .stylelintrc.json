@@ -1,6 +1,21 @@
 {
   "plugins": ["stylelint-order"],
   "rules": {
+    "rule-empty-line-before": [
+      "always",
+      {
+        "except": ["first-nested"],
+        "ignore": ["after-comment"]
+      }
+    ],
+    "at-rule-empty-line-before": [
+      "always",
+      {
+        "except": ["first-nested"],
+        "ignore": ["after-comment", "blockless-after-same-name-blockless"]
+      }
+    ],
+    "declaration-empty-line-before": "never",
     "order/order": ["custom-properties", "declarations"],
     "order/properties-order": [
       "content",
