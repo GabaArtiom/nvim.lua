@@ -24,17 +24,12 @@ end, { desc = "Format file" })
 map("n", "<A-l>", function()
   local ft = vim.bo.filetype
 
-  -- For PHP, use LSP formatter (same as leader+ff)
-  if ft == "php" then
-    vim.lsp.buf.format({ async = false })
+  -- Use conform for all files
+  local conform_ok, conform = pcall(require, "conform")
+  if conform_ok then
+    conform.format({ async = false, lsp_fallback = true })
   else
-    -- For other files, use conform with prettier
-    local conform_ok, conform = pcall(require, "conform")
-    if conform_ok then
-      conform.format({ async = false, lsp_fallback = true })
-    else
-      vim.lsp.buf.format({ async = false })
-    end
+    vim.lsp.buf.format({ async = false })
   end
 
   -- Add spacing between CSS/SCSS elements

@@ -79,6 +79,10 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     map("n", "<leader>pa", "<cmd>!php -l %<cr>", { desc = "Check PHP syntax", buffer = true })
     map("n", "<leader>pr", "<cmd>!php %<cr>", { desc = "Run PHP file", buffer = true })
+    map("n", "<leader>pf", function()
+      local file = vim.fn.expand("%:p")
+      vim.cmd("!" .. vim.fn.expand("~/.local/bin/php-cs-fixer") .. " fix --config=" .. vim.fn.expand("~/.config/nvim/.php-cs-fixer.php") .. " " .. file)
+    end, { desc = "Format with php-cs-fixer", buffer = true })
   end,
 })
 
