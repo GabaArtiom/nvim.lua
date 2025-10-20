@@ -72,12 +72,12 @@ return {
       local newVirtText = {}
       local filetype = vim.api.nvim_buf_get_option(0, 'filetype')
 
-      -- Применяем для HTML, PHP, CSS, SCSS файлов
-      if filetype == 'html' or filetype == 'php' or filetype == 'css' or filetype == 'scss' then
+      -- Применяем для HTML, PHP, Vue, CSS, SCSS файлов
+      if filetype == 'html' or filetype == 'php' or filetype == 'vue' or filetype == 'css' or filetype == 'scss' then
         local firstLine = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, false)[1] or ""
 
-        -- Для HTML и PHP файлов
-        if filetype == 'html' or filetype == 'php' then
+        -- Для HTML, PHP и Vue файлов
+        if filetype == 'html' or filetype == 'php' or filetype == 'vue' then
           local tagMatch = firstLine:match("<%s*([%w%-:]+)")
           if tagMatch and not firstLine:match("<%s*[%w%-:]+[^>]*/>") then -- исключаем самозакрывающиеся теги
             local indent = firstLine:match("^%s*")
@@ -235,8 +235,8 @@ return {
     require('ufo').setup({
       fold_virt_text_handler = fold_text_handler,
       provider_selector = function(bufnr, filetype, buftype)
-        -- Используем treesitter для PHP и HTML - он лучше понимает структуру
-        if filetype == 'php' or filetype == 'html' then
+        -- Используем treesitter для PHP, HTML и Vue - он лучше понимает структуру
+        if filetype == 'php' or filetype == 'html' or filetype == 'vue' then
           return { 'treesitter', 'indent' }
         end
         -- Кастомный провайдер только для CSS/SCSS с & селекторами
