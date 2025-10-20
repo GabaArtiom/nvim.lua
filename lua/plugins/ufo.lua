@@ -196,54 +196,10 @@ return {
       return newVirtText
     end
 
-    -- Кастомный провайдер для CSS/SCSS фолдинга
-    local function custom_fold_provider(bufnr)
-      local folds = {}
-      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-      local filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype')
-
-      if filetype == 'css' or filetype == 'scss' or filetype == 'sass' then
-        -- CSS/SCSS/SASS логика - только для & селекторов
-        local ampersand_starts = {}
-
-        -- Найдем все & селекторы и их закрывающие скобки
-        for i, line in ipairs(lines) do
-          local trimmed = line:gsub("^%s*", ""):gsub("%s*$", "")
-          local indent = #(line:match("^%s*") or "")
-
-          -- Нашли & селектор с открывающей скобкой
-          if trimmed:match("^&") and trimmed:match("{%s*$") then
-            -- Ищем соответствующую закрывающую скобку на том же уровне отступа
-            for j = i + 1, #lines do
-              local closing_line = lines[j]
-              local closing_trimmed = closing_line:gsub("^%s*", ""):gsub("%s*$", "")
-              local closing_indent = #(closing_line:match("^%s*") or "")
-
-              -- Нашли закрывающую скобку на том же уровне
-              if closing_trimmed == "}" and closing_indent == indent then
-                table.insert(folds, {startLine = i - 1, endLine = j - 1})
-                break
-              end
-            end
-          end
-        end
-      end
-
-      return folds
-    end
-
     require('ufo').setup({
       fold_virt_text_handler = fold_text_handler,
       provider_selector = function(bufnr, filetype, buftype)
-        -- Используем treesitter для PHP, HTML и Vue - он лучше понимает структуру
-        if filetype == 'php' or filetype == 'html' or filetype == 'vue' then
-          return { 'treesitter', 'indent' }
-        end
-        -- Кастомный провайдер только для CSS/SCSS с & селекторами
-        if filetype == 'css' or filetype == 'scss' or filetype == 'sass' then
-          return custom_fold_provider
-        end
-        -- Для остальных файлов - treesitter
+        -- Используем treesitter для всех файлов - он лучше понимает структуру
         return { 'treesitter', 'indent' }
       end,
       preview = {
@@ -258,23 +214,44 @@ return {
       },
     })
 
-    -- Автофолдинг для & селекторов при открытии CSS файлов
+    -- Автофолдинг для вложенных селекторов при открытии CSS/SCSS файлов
     vim.api.nvim_create_autocmd("BufReadPost", {
       pattern = {"*.css", "*.scss", "*.sass"},
       callback = function()
         vim.defer_fn(function()
-          -- Закрываем только & селекторы, оставляя главные классы открытыми
+          -- Сначала открываем все фолды
+          vim.cmd("silent! normal! zR")
+
+          -- Затем закрываем только вложенные блоки
           local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-          for i, line in ipairs(lines) do
-            local trimmed = line:gsub("^%s+", ""):gsub("%s+$", "")
-            if trimmed:match("^&") and trimmed:match("{%s*$") then
-              pcall(function()
-                vim.api.nvim_win_set_cursor(0, {i, 0})
-                vim.cmd("silent! normal! zc")
-              end)
+          local line_count = vim.api.nvim_buf_line_count(0)
+
+          -- Проходим по всем строкам и ищем вложенные блоки
+          for i = 1, line_count do
+            local line = lines[i] or ""
+            local indent_spaces = line:match("^(%s*)")
+            local indent_level = #indent_spaces
+
+            -- Закрываем блоки с отступом >= 2 пробела/1 таб
+            if indent_level >= 2 then
+              local trimmed = line:gsub("^%s+", ""):gsub("%s+$", "")
+
+              -- Проверяем что это начало блока (селектор с {)
+              if trimmed:match("{%s*$") or trimmed:match("^[^{}]+%s*{%s*$") then
+                -- Проверяем что для этой строки есть фолд
+                if vim.fn.foldclosed(i) == -1 then
+                  pcall(function()
+                    vim.api.nvim_win_set_cursor(0, {i, 0})
+                    vim.cmd("silent! normal! zc")
+                  end)
+                end
+              end
             end
           end
-        end, 200)
+
+          -- Возвращаем курсор в начало
+          vim.api.nvim_win_set_cursor(0, {1, 0})
+        end, 300)
       end,
     })
 
