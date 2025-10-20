@@ -17,12 +17,23 @@ map("n", "<C-z>,", "<Plug>(emmet-expand-abbr)", { desc = "Expand Emmet abbreviat
 
 -- Quick formatting
 map("n", "<leader>ff", function()
+  -- Сохраняем view (включая фолды и позицию курсора)
+  local view = vim.fn.winsaveview()
+
   vim.lsp.buf.format({ async = true })
+
+  -- Восстанавливаем view
+  vim.defer_fn(function()
+    pcall(vim.fn.winrestview, view)
+  end, 100)
 end, { desc = "Format file" })
 
 -- Alt+L for fast formatting
 map("n", "<A-l>", function()
   local ft = vim.bo.filetype
+
+  -- Сохраняем view (включая фолды и позицию курсора)
+  local view = vim.fn.winsaveview()
 
   -- Use conform for all files
   local conform_ok, conform = pcall(require, "conform")
@@ -62,11 +73,24 @@ map("n", "<A-l>", function()
 
     vim.api.nvim_buf_set_lines(0, 0, -1, false, new_lines)
   end
+
+  -- Восстанавливаем view с небольшой задержкой для async форматирования
+  vim.defer_fn(function()
+    pcall(vim.fn.winrestview, view)
+  end, 100)
 end, { desc = "Format with LSP (PHP) or prettier" })
 
 
 map("v", "<A-l>", function()
+  -- Сохраняем view (включая фолды и позицию курсора)
+  local view = vim.fn.winsaveview()
+
   vim.lsp.buf.format({ async = true })
+
+  -- Восстанавливаем view
+  vim.defer_fn(function()
+    pcall(vim.fn.winrestview, view)
+  end, 100)
 end, { desc = "Format selection" })
 
 -- CSS/SCSS color picker
@@ -161,11 +185,19 @@ end, { desc = "Debug formatters" })
 -- Alternative PHP formatting with php-cs-fixer (for pure PHP files)
 map("n", "<leader>fp", function()
   if vim.bo.filetype == "php" then
+    -- Сохраняем view (включая фолды и позицию курсора)
+    local view = vim.fn.winsaveview()
+
     local conform = require("conform")
     conform.format({
       formatters = { "php-cs-fixer" },
       async = false,
     })
+
+    -- Восстанавливаем view
+    vim.defer_fn(function()
+      pcall(vim.fn.winrestview, view)
+    end, 50)
   else
     print("php-cs-fixer is only for PHP files")
   end
