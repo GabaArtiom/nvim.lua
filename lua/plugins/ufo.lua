@@ -154,37 +154,13 @@ return {
       return newVirtText
     end
 
-    -- Кастомный провайдер для HTML/CSS фолдинга
+    -- Кастомный провайдер для CSS/SCSS фолдинга
     local function custom_fold_provider(bufnr)
       local folds = {}
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       local filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype')
 
-      if filetype == 'html' or filetype == 'php' then
-        -- HTML логика
-        for i, line in ipairs(lines) do
-          local trimmed = line:gsub("^%s*", ""):gsub("%s*$", "")
-
-          -- Ищем полный тег в одной строке: <tag>content</tag>
-          local single_line_tag = trimmed:match("^<([%w%-:]+)[^>]*>.*</%1>$")
-          if single_line_tag then
-            table.insert(folds, {startLine = i - 1, endLine = i - 1})
-          else
-            -- Ищем открывающий тег, который не закрывается на той же строке
-            local opening_tag = trimmed:match("^<([%w%-:]+)[^/>]*>$")
-            if opening_tag then
-              -- Ищем соответствующий закрывающий тег
-              for j = i + 1, #lines do
-                local closing_line = lines[j]:gsub("^%s*", ""):gsub("%s*$", "")
-                if closing_line == "</" .. opening_tag .. ">" then
-                  table.insert(folds, {startLine = i - 1, endLine = j - 1})
-                  break
-                end
-              end
-            end
-          end
-        end
-      elseif filetype == 'css' or filetype == 'scss' or filetype == 'sass' then
+      if filetype == 'css' or filetype == 'scss' or filetype == 'sass' then
         -- CSS/SCSS/SASS логика - только для & селекторов
         local ampersand_starts = {}
 
@@ -217,9 +193,15 @@ return {
     require('ufo').setup({
       fold_virt_text_handler = fold_text_handler,
       provider_selector = function(bufnr, filetype, buftype)
-        if filetype == 'html' or filetype == 'php' or filetype == 'css' or filetype == 'scss' or filetype == 'sass' then
+        -- Используем treesitter для PHP и HTML - он лучше понимает структуру
+        if filetype == 'php' or filetype == 'html' then
+          return { 'treesitter', 'indent' }
+        end
+        -- Кастомный провайдер только для CSS/SCSS с & селекторами
+        if filetype == 'css' or filetype == 'scss' or filetype == 'sass' then
           return custom_fold_provider
         end
+        -- Для остальных файлов - treesitter
         return { 'treesitter', 'indent' }
       end,
       preview = {

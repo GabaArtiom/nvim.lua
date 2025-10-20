@@ -2,7 +2,7 @@
   "indentSize": 2,
   "wrapLineLength": 120,
   "wrapAttributes": "force-expand-multiline",
-  "wrapAttributesMinAttrs": 5,
+  "wrapAttributesMinAttrs": 4,
   "endOfLine": "LF",
   "useTabs": false,
   "sortTailwindcssClasses": false,

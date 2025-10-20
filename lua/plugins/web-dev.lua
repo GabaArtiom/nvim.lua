@@ -195,6 +195,17 @@ return {
         "markdown",
         "markdown_inline",
       })
+
+      -- Включаем фолдинг через treesitter для PHP и HTML
+      opts.fold = true
+      opts.highlight = opts.highlight or {}
+      opts.highlight.enable = true
+      opts.highlight.additional_vim_regex_highlighting = false
+
+      -- Настройки для PHP с HTML
+      opts.php = {
+        enable = true,
+      }
     end,
   },
 
