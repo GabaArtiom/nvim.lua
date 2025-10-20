@@ -80,13 +80,55 @@ return {
         if filetype == 'html' or filetype == 'php' then
           local tagMatch = firstLine:match("<%s*([%w%-:]+)")
           if tagMatch and not firstLine:match("<%s*[%w%-:]+[^>]*/>") then -- исключаем самозакрывающиеся теги
-            -- Показываем только название тега без атрибутов
             local indent = firstLine:match("^%s*")
-            table.insert(newVirtText, { indent .. "<" .. tagMatch, "HTMLFoldTag" })
-            table.insert(newVirtText, { " ", nil })
-            table.insert(newVirtText, { "...", "Comment" })
-            table.insert(newVirtText, { " ", nil })
-            table.insert(newVirtText, { ">", "HTMLFoldTag" })
+
+            -- Собираем все строки до закрывающей скобки тега
+            local fullTag = firstLine
+            if not firstLine:match(">") then
+              -- Тег многострочный, ищем закрывающую скобку
+              for i = lnum, math.min(lnum + 10, endLnum) do
+                local line = vim.api.nvim_buf_get_lines(0, i, i + 1, false)[1]
+                if line then
+                  fullTag = fullTag .. " " .. line
+                  if line:match(">") then
+                    break
+                  end
+                end
+              end
+            end
+
+            -- Извлекаем class или id из полного тега
+            local classMatch = fullTag:match('class%s*=%s*["\']([^"\']+)["\']')
+            local idMatch = fullTag:match('id%s*=%s*["\']([^"\']+)["\']')
+
+            -- Формируем строку фолда
+            local foldText = indent .. "<" .. tagMatch
+
+            if classMatch then
+              -- Берем только первый класс если их несколько
+              local firstClass = classMatch:match("^(%S+)")
+              table.insert(newVirtText, { foldText, "HTMLFoldTag" })
+              table.insert(newVirtText, { ' class="' .. firstClass .. '"', "String" })
+              table.insert(newVirtText, { " ", nil })
+              table.insert(newVirtText, { "...", "Comment" })
+              table.insert(newVirtText, { " ", nil })
+              table.insert(newVirtText, { ">", "HTMLFoldTag" })
+            elseif idMatch then
+              table.insert(newVirtText, { foldText, "HTMLFoldTag" })
+              table.insert(newVirtText, { ' id="' .. idMatch .. '"', "String" })
+              table.insert(newVirtText, { " ", nil })
+              table.insert(newVirtText, { "...", "Comment" })
+              table.insert(newVirtText, { " ", nil })
+              table.insert(newVirtText, { ">", "HTMLFoldTag" })
+            else
+              -- Если нет class или id, показываем просто тег
+              table.insert(newVirtText, { foldText, "HTMLFoldTag" })
+              table.insert(newVirtText, { " ", nil })
+              table.insert(newVirtText, { "...", "Comment" })
+              table.insert(newVirtText, { " ", nil })
+              table.insert(newVirtText, { ">", "HTMLFoldTag" })
+            end
+
             return newVirtText
           end
         end
