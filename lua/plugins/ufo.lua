@@ -72,8 +72,9 @@ return {
       local newVirtText = {}
       local filetype = vim.api.nvim_buf_get_option(0, 'filetype')
 
-      -- Применяем для HTML, PHP, Vue, CSS, SCSS файлов
-      if filetype == 'html' or filetype == 'php' or filetype == 'vue' or filetype == 'css' or filetype == 'scss' then
+      -- Применяем для HTML, PHP, Vue, CSS, SCSS, JS, TS файлов
+      if filetype == 'html' or filetype == 'php' or filetype == 'vue' or filetype == 'css' or filetype == 'scss' or
+         filetype == 'javascript' or filetype == 'typescript' or filetype == 'javascriptreact' or filetype == 'typescriptreact' then
         local firstLine = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, false)[1] or ""
 
         -- Для HTML, PHP и Vue файлов
@@ -135,14 +136,168 @@ return {
 
         -- Для CSS, SCSS и SASS файлов
         if filetype == 'css' or filetype == 'scss' or filetype == 'sass' then
-          -- Проверяем CSS селекторы
+          local indent = firstLine:match("^%s*") or ""
+
+          -- Собираем все селекторы (включая многострочные через запятую)
+          local fullSelector = ""
+          local currentLine = firstLine
+
+          -- Если первая строка заканчивается на запятую, собираем селекторы из следующих строк
+          if currentLine:match(",%s*$") then
+            fullSelector = currentLine:gsub("^%s*", ""):gsub("%s*$", "")
+
+            -- Читаем следующие строки до тех пор, пока не найдем открывающую скобку
+            for i = lnum, math.min(lnum + 5, endLnum) do
+              local line = vim.api.nvim_buf_get_lines(0, i, i + 1, false)[1]
+              if line and i > lnum - 1 then
+                local trimmed = line:gsub("^%s*", ""):gsub("%s*$", "")
+                if trimmed:match("{") then
+                  -- Нашли строку с открывающей скобкой
+                  local selectorPart = trimmed:match("^([^{]+)")
+                  if selectorPart then
+                    fullSelector = fullSelector .. " " .. selectorPart:gsub("%s*$", "")
+                  end
+                  break
+                elseif trimmed:match(",%s*$") then
+                  -- Еще один селектор через запятую
+                  fullSelector = fullSelector .. " " .. trimmed
+                end
+              end
+            end
+
+            table.insert(newVirtText, { indent .. fullSelector, "CSSFoldSelector" })
+            table.insert(newVirtText, { " { ", nil })
+            table.insert(newVirtText, { "...", "Comment" })
+            table.insert(newVirtText, { " }", nil })
+            return newVirtText
+          end
+
+          -- Обычный случай: селектор с открывающей скобкой на одной строке
           local cssSelector = firstLine:match("^%s*([^{]+)%s*{%s*$")
           if cssSelector then
-            local indent = firstLine:match("^%s*")
             table.insert(newVirtText, { indent .. cssSelector:gsub("^%s*", ""):gsub("%s*$", ""), "CSSFoldSelector" })
             table.insert(newVirtText, { " { ", nil })
             table.insert(newVirtText, { "...", "Comment" })
             table.insert(newVirtText, { " }", nil })
+            return newVirtText
+          end
+        end
+
+        -- Для JavaScript и TypeScript файлов
+        if filetype == 'javascript' or filetype == 'typescript' or filetype == 'javascriptreact' or filetype == 'typescriptreact' then
+          local indent = firstLine:match("^%s*") or ""
+
+          -- Обработка функций: function name() { ... } или export function name() { ... }
+          local exportPrefix = firstLine:match("^%s*(export%s+default%s+)") or firstLine:match("^%s*(export%s+)") or ""
+          local funcMatch = firstLine:match("function%s+([%w_]+)%s*%(")
+          if funcMatch then
+            table.insert(newVirtText, { indent .. exportPrefix .. "function " .. funcMatch .. "() { ", "Function" })
+            table.insert(newVirtText, { "...", "Comment" })
+            table.insert(newVirtText, { " }", nil })
+            return newVirtText
+          end
+
+          -- Обработка стрелочных функций: const name = () => { ... }
+          local arrowMatch = firstLine:match("^%s*const%s+([%w_]+)%s*=%s*%(")
+          if arrowMatch then
+            table.insert(newVirtText, { indent .. "const " .. arrowMatch .. " = () => { ", "Function" })
+            table.insert(newVirtText, { "...", "Comment" })
+            table.insert(newVirtText, { " }", nil })
+            return newVirtText
+          end
+
+          -- Обработка методов объектов: obj.method("arg", { ... })
+          local methodMatch = firstLine:match("^%s*([%w_]+)%.([%w_]+)%(")
+          if methodMatch then
+            local objName = methodMatch
+            local methodName = firstLine:match("%.([%w_]+)%(")
+
+            -- Подсчитываем элементы только первого уровня
+            local lines = vim.api.nvim_buf_get_lines(0, lnum - 1, endLnum, false)
+            local firstLineIndent = #(lines[1]:match("^%s*") or "")
+            local baseIndent = nil
+            local elementCount = 0
+
+            for i, line in ipairs(lines) do
+              if i > 1 then -- Пропускаем первую строку
+                local currentIndent = #(line:match("^%s*") or "")
+
+                -- Определяем базовый отступ (первый ключ после {)
+                if not baseIndent and line:match("^%s*[%w_]+:") then
+                  baseIndent = currentIndent
+                end
+
+                -- Считаем только ключи с базовым отступом (первый уровень)
+                if baseIndent and currentIndent == baseIndent and line:match("^%s*[%w_]+:") then
+                  elementCount = elementCount + 1
+                end
+              end
+            end
+
+            table.insert(newVirtText, { indent .. objName .. "." .. methodName .. "(", "Function" })
+            if elementCount > 0 then
+              table.insert(newVirtText, { "..., [" .. elementCount .. " element" .. (elementCount > 1 and "s" or "") .. "...]", "Number" })
+            else
+              table.insert(newVirtText, { "...", "Comment" })
+            end
+            table.insert(newVirtText, { ");", nil })
+            return newVirtText
+          end
+
+          -- Обработка объектов/массивов: let name = { ... } или let name = [ ... ]
+          local objMatch = firstLine:match("^%s*let%s+([%w_]+)%s*=%s*[%w%.]+%(+%s*{")
+          local objMatch2 = firstLine:match("^%s*const%s+([%w_]+)%s*=%s*[%w%.]+%(+%s*{")
+          local objMatch3 = firstLine:match("^%s*let%s+([%w_]+)%s*=%s*{")
+          local objMatch4 = firstLine:match("^%s*const%s+([%w_]+)%s*=%s*{")
+
+          if objMatch or objMatch2 or objMatch3 or objMatch4 then
+            local varName = objMatch or objMatch2 or objMatch3 or objMatch4
+
+            -- Подсчитываем элементы только первого уровня
+            local lines = vim.api.nvim_buf_get_lines(0, lnum - 1, endLnum, false)
+            local firstLineIndent = #(lines[1]:match("^%s*") or "")
+            local baseIndent = nil
+            local elementCount = 0
+
+            for i, line in ipairs(lines) do
+              if i > 1 then -- Пропускаем первую строку
+                local currentIndent = #(line:match("^%s*") or "")
+
+                -- Определяем базовый отступ (первый ключ после {)
+                if not baseIndent and line:match("^%s*[%w_]+:") then
+                  baseIndent = currentIndent
+                end
+
+                -- Считаем только ключи с базовым отступом (первый уровень)
+                if baseIndent and currentIndent == baseIndent and line:match("^%s*[%w_]+:") then
+                  elementCount = elementCount + 1
+                end
+              end
+            end
+
+            -- Определяем тип переменной (let/const)
+            local varType = firstLine:match("^%s*(let)%s+") or firstLine:match("^%s*(const)%s+")
+
+            -- Определяем вызов функции если есть
+            local funcCall = firstLine:match("=%s*([%w%.]+)%(")
+
+            if funcCall then
+              table.insert(newVirtText, { indent .. varType .. " " .. varName .. " = " .. funcCall .. "(", "Identifier" })
+              if elementCount > 0 then
+                table.insert(newVirtText, { "[" .. elementCount .. " element" .. (elementCount > 1 and "s" or "") .. "...]", "Number" })
+              else
+                table.insert(newVirtText, { "...", "Comment" })
+              end
+              table.insert(newVirtText, { ");", nil })
+            else
+              table.insert(newVirtText, { indent .. varType .. " " .. varName .. " = { ", "Identifier" })
+              if elementCount > 0 then
+                table.insert(newVirtText, { elementCount .. " element" .. (elementCount > 1 and "s" or "") .. " ", "Number" })
+              else
+                table.insert(newVirtText, { "...", "Comment" })
+              end
+              table.insert(newVirtText, { "}", nil })
+            end
             return newVirtText
           end
         end
@@ -153,43 +308,46 @@ return {
         table.insert(newVirtText, chunk)
       end
 
-      local foldedLines = endLnum - lnum
-      if foldedLines > 0 then
-        -- Читаем все строки фолда
-        local allLines = vim.api.nvim_buf_get_lines(0, lnum + 1, endLnum, false)
+      -- Дополнительная информация только для HTML/PHP/Vue файлов
+      if filetype == 'html' or filetype == 'php' or filetype == 'vue' then
+        local foldedLines = endLnum - lnum
+        if foldedLines > 0 then
+          -- Читаем все строки фолда
+          local allLines = vim.api.nvim_buf_get_lines(0, lnum + 1, endLnum, false)
 
-        -- Ищем первую содержательную строку
-        local firstContent = ""
-        for _, line in ipairs(allLines) do
-          local trimmed = line:gsub("^%s*", ""):gsub("%s*$", "")
-          if trimmed ~= "" and not trimmed:match("^</") then
-            firstContent = trimmed
-            break
+          -- Ищем первую содержательную строку
+          local firstContent = ""
+          for _, line in ipairs(allLines) do
+            local trimmed = line:gsub("^%s*", ""):gsub("%s*$", "")
+            if trimmed ~= "" and not trimmed:match("^</") then
+              firstContent = trimmed
+              break
+            end
           end
-        end
 
-        -- Ищем закрывающий тег (последняя строка)
-        local closingTag = ""
-        if #allLines > 0 then
-          local lastLine = allLines[#allLines]:gsub("^%s*", ""):gsub("%s*$", "")
-          if lastLine:match("^</") then
-            closingTag = lastLine
+          -- Ищем закрывающий тег (последняя строка)
+          local closingTag = ""
+          if #allLines > 0 then
+            local lastLine = allLines[#allLines]:gsub("^%s*", ""):gsub("%s*$", "")
+            if lastLine:match("^</") then
+              closingTag = lastLine
+            end
           end
-        end
 
-        -- Добавляем в одну строку: --- содержимое --- закрывающий_тег
-        if #firstContent > 0 then
-          table.insert(newVirtText, { " --- ", "Comment" })
-          -- Обрезаем содержимое если слишком длинное
-          if #firstContent > 50 then
-            firstContent = firstContent:sub(1, 50) .. "..."
+          -- Добавляем в одну строку: --- содержимое --- закрывающий_тег
+          if #firstContent > 0 then
+            table.insert(newVirtText, { " --- ", "Comment" })
+            -- Обрезаем содержимое если слишком длинное
+            if #firstContent > 50 then
+              firstContent = firstContent:sub(1, 50) .. "..."
+            end
+            table.insert(newVirtText, { firstContent, "String" })
+            table.insert(newVirtText, { " --- ", "Comment" })
           end
-          table.insert(newVirtText, { firstContent, "String" })
-          table.insert(newVirtText, { " --- ", "Comment" })
-        end
 
-        if #closingTag > 0 then
-          table.insert(newVirtText, { closingTag, "Tag" })
+          if #closingTag > 0 then
+            table.insert(newVirtText, { closingTag, "Tag" })
+          end
         end
       end
 
