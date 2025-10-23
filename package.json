@@ -164,7 +164,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github-account2:GabaArtiom/nvim.lua.git"
+    "url": "git@github.com:GabaArtiom/nvim.lua.git"
   },
   "keywords": [],
   "author": "",
