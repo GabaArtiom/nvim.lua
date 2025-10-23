@@ -45,6 +45,7 @@ return {
       vim.keymap.set("n", "<Tab>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next buffer" })
       vim.keymap.set("n", "<S-Tab>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous buffer" })
       vim.keymap.set("n", "<leader>x", "<cmd>bdelete<cr>", { desc = "Close buffer" })
+      vim.keymap.set("n", "<leader>qo", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
     end,
   },
 }

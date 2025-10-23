@@ -1,12 +1,12 @@
 -- lua/config/tab-split.lua
--- Функция для создания вертикального сплита с левым буфером из bufferline
+-- Функция для создания вертикального сплита с правым буфером из bufferline
 
 local function split_with_left_buffer()
   local current_buffer = vim.fn.bufnr("%")
 
   -- Пытаемся получить порядок буферов из bufferline
   local bufferline_ok, bufferline_state = pcall(require, "bufferline.state")
-  local left_buffer = nil
+  local right_buffer = nil
 
   if bufferline_ok and bufferline_state then
     local components = bufferline_state.components or {}
@@ -20,49 +20,46 @@ local function split_with_left_buffer()
       end
     end
 
-    if current_index and current_index > 1 then
-      -- Берем буфер слева от текущего в bufferline
-      left_buffer = components[current_index - 1].id
+    if current_index and current_index < #components then
+      -- Берем буфер справа от текущего в bufferline
+      right_buffer = components[current_index + 1].id
     elseif current_index and #components > 1 then
-      -- Если мы на первом буфере, берем последний (циклический переход)
-      left_buffer = components[#components].id
+      -- Если мы на последнем буфере, берем первый (циклический переход)
+      right_buffer = components[1].id
     end
   end
 
   -- Если bufferline не сработал, используем fallback - альтернативный буфер
-  if not left_buffer then
-    left_buffer = vim.fn.bufnr("#")
-    if left_buffer == -1 or left_buffer == current_buffer or not vim.fn.buflisted(left_buffer) then
+  if not right_buffer then
+    right_buffer = vim.fn.bufnr("#")
+    if right_buffer == -1 or right_buffer == current_buffer or not vim.fn.buflisted(right_buffer) then
       -- Последний fallback - первый доступный буфер
       for _, buf in ipairs(vim.api.nvim_list_bufs()) do
         if vim.fn.buflisted(buf) == 1 and buf ~= current_buffer then
-          left_buffer = buf
+          right_buffer = buf
           break
         end
       end
     end
   end
 
-  if not left_buffer or left_buffer == current_buffer then
+  if not right_buffer or right_buffer == current_buffer then
     vim.notify("Не найден подходящий буфер для сплита", vim.log.levels.WARN)
     return
   end
 
-  -- Создаем вертикальный сплит справа (текущий буфер уйдет вправо)
+  -- Создаем вертикальный сплит справа
   vim.cmd("rightbelow vsplit")
 
-  -- Сейчас мы в правом окне с текущим буфером, переходим в левое
+  -- Сейчас мы в правом окне с текущим буфером, открываем правый буфер
+  vim.cmd("buffer " .. right_buffer)
+
+  -- Возвращаемся в левое окно с текущим буфером
   vim.cmd("wincmd h")
-
-  -- В левом окне открываем левый буфер
-  vim.cmd("buffer " .. left_buffer)
-
-  -- Возвращаемся в правое окно с текущим буфером
-  vim.cmd("wincmd l")
 end
 
 -- Настройка keymap
 vim.keymap.set("n", "<leader>vv", split_with_left_buffer, {
-  desc = "Split with left buffer from bufferline",
+  desc = "Split with right buffer from bufferline",
   silent = true,
 })
