@@ -41,11 +41,28 @@ return {
     config = function(_, opts)
       require("bufferline").setup(opts)
 
+      -- Smart buffer delete that doesn't close window
+      local function smart_bdelete()
+        local bufnr = vim.api.nvim_get_current_buf()
+        local buffers = vim.fn.getbufinfo({ buflisted = 1 })
+
+        -- If there's more than one buffer, switch to another before deleting
+        if #buffers > 1 then
+          vim.cmd("bp")
+        else
+          -- If this is the last buffer, create a new empty one first
+          vim.cmd("enew")
+        end
+
+        -- Delete the original buffer
+        vim.api.nvim_buf_delete(bufnr, { force = false })
+      end
+
       -- Keymaps
       vim.keymap.set("n", "<Tab>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next buffer" })
       vim.keymap.set("n", "<S-Tab>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous buffer" })
-      vim.keymap.set("n", "<leader>x", "<cmd>bdelete<cr>", { desc = "Close buffer" })
-      vim.keymap.set("n", "<leader>qo", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
+      vim.keymap.set("n", "<leader>x", smart_bdelete, { desc = "Close buffer" })
+      vim.keymap.set("n", "<leader>qo", smart_bdelete, { desc = "Delete buffer" })
     end,
   },
 }

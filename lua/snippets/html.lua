@@ -67,6 +67,25 @@ local shared_snippets = {
     t("</div>"),
   }),
 
+  s("dvv", {
+    t("<"),
+    i(1, "div"),
+    t(' class="'),
+    f(function()
+      local reg = vim.fn.getreg("i") or ""
+      local base = reg:match("^(.-__)") or reg
+      return base
+    end, {}),
+    i(2),
+    t('"><?php echo $'),
+    rep(2),
+    t('; ?>'),
+    i(3),
+    t('</'),
+    rep(1),
+    t(">"),
+  }),
+
   s("d", {
     t("<"),
     i(1, "div"), -- тег (по умолчанию div)
@@ -77,6 +96,23 @@ local shared_snippets = {
       return base
     end, {}),
     i(2),   -- дополнительный класс
+    t('">'),
+    i(3),   -- содержимое
+    t("</"),
+    rep(1), -- повтор тега
+    t(">"),
+  }),
+
+  s("di", {
+    t("<"),
+    i(1, "div"), -- тег (по умолчанию div)
+    t(' class="'),
+    f(function()
+      local reg = vim.fn.getreg("i") or ""
+      local base = reg:match("^(.-__)") or reg
+      return base
+    end, {}),
+    i(2),   -- элемент
     t('">'),
     i(3),   -- содержимое
     t("</"),
