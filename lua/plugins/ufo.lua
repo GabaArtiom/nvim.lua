@@ -17,55 +17,55 @@ return {
     vim.o.foldlevelstart = 99
     vim.o.foldenable = true
 
-    -- Сохранение состояния закрытых фолдов
-    local function save_folds()
-      local folds = {}
-      local line_count = vim.api.nvim_buf_line_count(0)
-      for lnum = 1, line_count do
-        if vim.fn.foldclosed(lnum) == lnum then
-          table.insert(folds, lnum)
-        end
-      end
-      return folds
-    end
+    -- Сохранение состояния закрытых фолдов (отключено)
+    -- local function save_folds()
+    --   local folds = {}
+    --   local line_count = vim.api.nvim_buf_line_count(0)
+    --   for lnum = 1, line_count do
+    --     if vim.fn.foldclosed(lnum) == lnum then
+    --       table.insert(folds, lnum)
+    --     end
+    --   end
+    --   return folds
+    -- end
 
-    local function restore_folds(folds)
-      for _, lnum in ipairs(folds) do
-        vim.api.nvim_win_set_cursor(0, {lnum, 0})
-        pcall(vim.cmd, "normal! zc")
-      end
-    end
+    -- local function restore_folds(folds)
+    --   for _, lnum in ipairs(folds) do
+    --     vim.api.nvim_win_set_cursor(0, {lnum, 0})
+    --     pcall(vim.cmd, "normal! zc")
+    --   end
+    -- end
 
-    local saved_folds = {}
+    -- local saved_folds = {}
 
-    vim.api.nvim_create_autocmd("BufWritePre", {
-      pattern = "*",
-      callback = function()
-        local bufnr = vim.api.nvim_get_current_buf()
-        saved_folds[bufnr] = save_folds()
-      end,
-    })
+    -- vim.api.nvim_create_autocmd("BufWritePre", {
+    --   pattern = "*",
+    --   callback = function()
+    --     local bufnr = vim.api.nvim_get_current_buf()
+    --     saved_folds[bufnr] = save_folds()
+    --   end,
+    -- })
 
-    vim.api.nvim_create_autocmd("BufWritePost", {
-      pattern = "*",
-      callback = function()
-        vim.schedule(function()
-          local bufnr = vim.api.nvim_get_current_buf()
-          if saved_folds[bufnr] then
-            restore_folds(saved_folds[bufnr])
-            saved_folds[bufnr] = nil
-          end
-        end)
-      end,
-    })
+    -- vim.api.nvim_create_autocmd("BufWritePost", {
+    --   pattern = "*",
+    --   callback = function()
+    --     vim.schedule(function()
+    --       local bufnr = vim.api.nvim_get_current_buf()
+    --       if saved_folds[bufnr] then
+    --         restore_folds(saved_folds[bufnr])
+    --         saved_folds[bufnr] = nil
+    --       end
+    --     end)
+    --   end,
+    -- })
 
-    -- Восстановление фолдов при открытии файла
-    vim.api.nvim_create_autocmd("BufReadPost", {
-      pattern = "*",
-      callback = function()
-        vim.cmd("silent! loadview")
-      end,
-    })
+    -- Восстановление фолдов при открытии файла (отключено)
+    -- vim.api.nvim_create_autocmd("BufReadPost", {
+    --   pattern = "*",
+    --   callback = function()
+    --     vim.cmd("silent! loadview")
+    --   end,
+    -- })
 
     -- Функция для показа HTML тегов как <tag ... >
     local function fold_text_handler(virtText, lnum, endLnum, width, truncate)
@@ -372,46 +372,46 @@ return {
       },
     })
 
-    -- Автофолдинг для вложенных селекторов при открытии CSS/SCSS файлов
-    vim.api.nvim_create_autocmd("BufReadPost", {
-      pattern = {"*.css", "*.scss", "*.sass"},
-      callback = function()
-        vim.defer_fn(function()
-          -- Сначала открываем все фолды
-          vim.cmd("silent! normal! zR")
-
-          -- Затем закрываем только вложенные блоки
-          local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-          local line_count = vim.api.nvim_buf_line_count(0)
-
-          -- Проходим по всем строкам и ищем вложенные блоки
-          for i = 1, line_count do
-            local line = lines[i] or ""
-            local indent_spaces = line:match("^(%s*)")
-            local indent_level = #indent_spaces
-
-            -- Закрываем блоки с отступом >= 2 пробела/1 таб
-            if indent_level >= 2 then
-              local trimmed = line:gsub("^%s+", ""):gsub("%s+$", "")
-
-              -- Проверяем что это начало блока (селектор с {)
-              if trimmed:match("{%s*$") or trimmed:match("^[^{}]+%s*{%s*$") then
-                -- Проверяем что для этой строки есть фолд
-                if vim.fn.foldclosed(i) == -1 then
-                  pcall(function()
-                    vim.api.nvim_win_set_cursor(0, {i, 0})
-                    vim.cmd("silent! normal! zc")
-                  end)
-                end
-              end
-            end
-          end
-
-          -- Возвращаем курсор в начало
-          vim.api.nvim_win_set_cursor(0, {1, 0})
-        end, 300)
-      end,
-    })
+    -- Автофолдинг для вложенных селекторов при открытии CSS/SCSS файлов (отключено)
+    -- vim.api.nvim_create_autocmd("BufReadPost", {
+    --   pattern = {"*.css", "*.scss", "*.sass"},
+    --   callback = function()
+    --     vim.defer_fn(function()
+    --       -- Сначала открываем все фолды
+    --       vim.cmd("silent! normal! zR")
+    --
+    --       -- Затем закрываем только вложенные блоки
+    --       local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    --       local line_count = vim.api.nvim_buf_line_count(0)
+    --
+    --       -- Проходим по всем строкам и ищем вложенные блоки
+    --       for i = 1, line_count do
+    --         local line = lines[i] or ""
+    --         local indent_spaces = line:match("^(%s*)")
+    --         local indent_level = #indent_spaces
+    --
+    --         -- Закрываем блоки с отступом >= 2 пробела/1 таб
+    --         if indent_level >= 2 then
+    --           local trimmed = line:gsub("^%s+", ""):gsub("%s+$", "")
+    --
+    --           -- Проверяем что это начало блока (селектор с {)
+    --           if trimmed:match("{%s*$") or trimmed:match("^[^{}]+%s*{%s*$") then
+    --             -- Проверяем что для этой строки есть фолд
+    --             if vim.fn.foldclosed(i) == -1 then
+    --               pcall(function()
+    --                 vim.api.nvim_win_set_cursor(0, {i, 0})
+    --                 vim.cmd("silent! normal! zc")
+    --               end)
+    --             end
+    --           end
+    --         end
+    --       end
+    --
+    --       -- Возвращаем курсор в начало
+    --       vim.api.nvim_win_set_cursor(0, {1, 0})
+    --     end, 300)
+    --   end,
+    -- })
 
     -- Красивые цвета
     vim.api.nvim_set_hl(0, "Folded", {
