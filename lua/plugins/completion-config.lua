@@ -156,6 +156,14 @@ return {
         },
       },
 
+      -- Исправляем cmdline keymap из LazyVim (false -> пустые таблицы)
+      cmdline = {
+        keymap = {
+          ["<Right>"] = {},
+          ["<Left>"] = {},
+        },
+      },
+
       -- Fuzzy сортировка для приоритизации твоих снипетов
       fuzzy = {
         sorts = {
@@ -220,8 +228,9 @@ return {
       -- Настраиваем клавиши
       keymap = {
         preset = "default",
-        ["<Tab>"] = { "snippet_forward", "accept", "fallback" },
-        ["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
+        -- Tab используется для tabout.nvim (выход из скобок)
+        ["<Tab>"] = { "snippet_forward", "fallback" },
+        ["<S-Tab>"] = { "snippet_backward", "fallback" },
         ["<C-j>"] = { "select_next", "fallback" },
         ["<C-k>"] = { "select_prev", "fallback" },
         ["<CR>"] = {
