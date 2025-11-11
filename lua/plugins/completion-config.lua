@@ -23,7 +23,30 @@ return {
           css = { "lsp", "snippets", "buffer", "path" },
         },
         providers = {
-          lsp = {},
+          lsp = {
+            transform_items = function(ctx, items)
+              -- Получаем query
+              local line = vim.api.nvim_get_current_line()
+              local col = vim.api.nvim_win_get_cursor(0)[2]
+              local before_cursor = line:sub(1, col)
+              local query = before_cursor:match("[%w_%-]+$") or ""
+
+              -- Мои кастомные сниппеты
+              local my_snippets = {
+                "mc5", "mc7", "mc9", "mc12", "mcus", "mc",
+                "mbl", "min", "pbl", "pin",
+                "pa", "dfb", "dfc", "vr", "bf", "af",
+                "dv", "pv", "cl", "dqs", "fun"
+              }
+
+              -- Если query точно совпадает с моим snippet - БЛОКИРУЕМ ВСЁ от LSP!
+              if vim.tbl_contains(my_snippets, query) then
+                return {} -- Возвращаем пустой список для LSP
+              end
+
+              return items
+            end,
+          },
           snippets = {
             transform_items = function(ctx, items)
               -- Получаем что пользователь напечатал
@@ -45,9 +68,9 @@ return {
                 local is_my_snippet = vim.tbl_contains(my_snippets, item.label or "")
                 local exact_match = (item.label == query)
 
-                -- Если МОЙ snippet И точное совпадение - огромный boost!
+                -- Если МОЙ snippet И точное совпадение - МАКСИМАЛЬНЫЙ boost!
                 if is_my_snippet and exact_match then
-                  item.score_offset = (item.score_offset or 0) + 1000
+                  item.score_offset = 99999 -- Безумно большое значение
                 end
               end
 
