@@ -24,7 +24,7 @@ return {
         },
         providers = {
           snippets = {
-            score_offset = -3, -- Стандартный приоритет
+            score_offset = 10, -- Высокий приоритет для сниппетов
             enabled = function()
               local line = vim.api.nvim_get_current_line()
               local col = vim.api.nvim_win_get_cursor(0)[2]
@@ -32,9 +32,11 @@ return {
               local after_cursor = line:sub(col + 1)
 
               -- Отключаем сниппеты внутри любых скобок если ничего не напечатано
-              if (before_cursor:match("{%s*$") and after_cursor:match("^%s*}")) or
-                 (before_cursor:match("%(%s*$") and after_cursor:match("^%s*%)")) or
-                 (before_cursor:match("%[%s*$") and after_cursor:match("^%s*%]")) then
+              if
+                (before_cursor:match("{%s*$") and after_cursor:match("^%s*}"))
+                or (before_cursor:match("%(%s*$") and after_cursor:match("^%s*%)"))
+                or (before_cursor:match("%[%s*$") and after_cursor:match("^%s*%]"))
+              then
                 return false
               end
 
@@ -50,16 +52,18 @@ return {
               local after_cursor = line:sub(col + 1)
 
               -- Отключаем LSP внутри любых скобок если ничего не напечатано
-              if (before_cursor:match("{%s*$") and after_cursor:match("^%s*}")) or
-                 (before_cursor:match("%(%s*$") and after_cursor:match("^%s*%)")) or
-                 (before_cursor:match("%[%s*$") and after_cursor:match("^%s*%]")) then
+              if
+                (before_cursor:match("{%s*$") and after_cursor:match("^%s*}"))
+                or (before_cursor:match("%(%s*$") and after_cursor:match("^%s*%)"))
+                or (before_cursor:match("%[%s*$") and after_cursor:match("^%s*%]"))
+              then
                 return false
               end
 
               return true
             end,
             transform_items = function(ctx, items)
-              local blacklist = require('config.snippet-blacklist')
+              local blacklist = require("config.snippet-blacklist")
               local filtered_items = {}
 
               for _, item in ipairs(items) do
@@ -125,16 +129,16 @@ return {
         trigger = {
           -- Отключаем автоматический показ при вводе символов
           show_on_insert_on_trigger_character = false,
-          show_on_x_blocked_trigger_characters = { '{', '}', '(', ')', '[', ']', '.', ':', ';' },
+          show_on_x_blocked_trigger_characters = { "{", "}", "(", ")", "[", "]", ".", ":", ";" },
         },
         menu = {
           auto_show = function(ctx)
-            if ctx.mode == 'cmdline' then
+            if ctx.mode == "cmdline" then
               return false
             end
 
             -- Для PHP файлов проверяем контекст
-            if vim.bo.filetype == 'php' then
+            if vim.bo.filetype == "php" then
               local line = vim.api.nvim_get_current_line()
               local col = vim.api.nvim_win_get_cursor(0)[2]
               local before_cursor = line:sub(1, col)
@@ -157,10 +161,19 @@ return {
         sorts = {
           function(a, b)
             -- Твои приоритетные снипеты
-            local my_snippets = {'dv', 'pv', 'mcus', 'mc', 'mc5', 'mc7', 'mc9', 'mc12'}
+            local my_snippets = {
+              -- HTML/PHP
+              "dv", "pv",
+              -- Media queries
+              "mcus", "mc", "mc5", "mc7", "mc9", "mc12",
+              -- JS/TS
+              "cl", "dqs", "fun",
+              -- CSS block/inline
+              "pbl", "pin", "mbl", "min"
+            }
 
             -- Vue директивы должны быть в приоритете
-            local vue_directives = {'v-if', 'v-else', 'v-else-if', 'v-for', 'v-show', 'v-model', 'v-bind', 'v-on'}
+            local vue_directives = { "v-if", "v-else", "v-else-if", "v-for", "v-show", "v-model", "v-bind", "v-on" }
 
             local a_is_my_snippet = a.source_name == "snippets" and vim.tbl_contains(my_snippets, a.label or "")
             local b_is_my_snippet = b.source_name == "snippets" and vim.tbl_contains(my_snippets, b.label or "")
@@ -199,9 +212,9 @@ return {
 
             return nil -- Стандартная сортировка
           end,
-          'score',
-          'sort_text',
-        }
+          "score",
+          "sort_text",
+        },
       },
 
       -- Настраиваем клавиши
@@ -233,13 +246,17 @@ return {
 
               -- Если между PHP тегами: <?php | ?>
               if before:match("%<%?php%s*$") and after:match("^%s*%?>") then
-                vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><CR><Up><Tab>", true, false, true), "n", false)
+                vim.api.nvim_feedkeys(
+                  vim.api.nvim_replace_termcodes("<CR><CR><Up><Tab>", true, false, true),
+                  "n",
+                  false
+                )
                 return
               end
             end
 
             -- Для Vue, HTML, SCSS, CSS и других файлов: между тегами создаем пустую строку
-            if vim.tbl_contains({"vue", "html", "scss", "css", "javascript", "typescript"}, vim.bo.filetype) then
+            if vim.tbl_contains({ "vue", "html", "scss", "css", "javascript", "typescript" }, vim.bo.filetype) then
               -- Если между HTML тегами: <div>|</div> или template тегами
               if before:match(">%s*$") and after:match("^%s*</") then
                 vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><Esc>O", true, false, true), "n", false)
@@ -247,9 +264,11 @@ return {
               end
 
               -- Если между скобками: {|} или (|) или [|]
-              if (before:match("{%s*$") and after:match("^%s*}")) or
-                 (before:match("%(%s*$") and after:match("^%s*%)")) or
-                 (before:match("%[%s*$") and after:match("^%s*%]")) then
+              if
+                (before:match("{%s*$") and after:match("^%s*}"))
+                or (before:match("%(%s*$") and after:match("^%s*%)"))
+                or (before:match("%[%s*$") and after:match("^%s*%]"))
+              then
                 vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><Esc>O", true, false, true), "n", false)
                 return
               end
@@ -263,4 +282,3 @@ return {
     },
   },
 }
-

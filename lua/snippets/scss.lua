@@ -42,7 +42,7 @@ local css_scss_snippets = {
     t({ "", "}" }),
   }),
 
-  s("pab", {
+  s("pa", {
     t({
       "position: absolute;",
       "top: 0;",
@@ -70,6 +70,24 @@ local css_scss_snippets = {
 
   s("vr", {
     t("var(--"), i(1), t(")"),
+  }),
+
+  -- Padding block/inline
+  s("pbl", {
+    t("padding-block: "), i(1), t(";"),
+  }),
+
+  s("pin", {
+    t("padding-inline: "), i(1), t(";"),
+  }),
+
+  -- Margin block/inline
+  s("mbl", {
+    t("margin-block: "), i(1), t(";"),
+  }),
+
+  s("min", {
+    t("margin-inline: "), i(1), t(";"),
   }),
 
   s("bf", {

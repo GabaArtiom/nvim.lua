@@ -48,9 +48,9 @@ return {
           },
         },
 
-        -- Keep emmet for Vue + HTML/CSS
-        emmet_ls = {
-          filetypes = { "html", "css", "scss", "sass", "less", "vue", "php" },
+        -- Новый emmet-language-server вместо устаревшего emmet-ls
+        emmet_language_server = {
+          filetypes = { "html", "css", "scss", "sass", "less", "vue", "php", "javascriptreact", "typescriptreact" },
         },
 
         html = {
@@ -58,6 +58,12 @@ return {
         },
         cssls = {
           filetypes = { "css", "scss", "sass", "less" },
+          -- Включаем snippet support для CSS completion
+          capabilities = (function()
+            local caps = vim.lsp.protocol.make_client_capabilities()
+            caps.textDocument.completion.completionItem.snippetSupport = true
+            return caps
+          end)(),
           settings = {
             css = {
               validate = true,
@@ -217,6 +223,7 @@ return {
         -- Language servers
         "html-lsp",
         "css-lsp",
+        "emmet-language-server",
         "typescript-language-server",
         "vue-language-server",
         "intelephense",
