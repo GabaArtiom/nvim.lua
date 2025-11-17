@@ -109,13 +109,23 @@ return {
               return false
             end
 
+            local line = vim.api.nvim_get_current_line()
+            local col = vim.api.nvim_win_get_cursor(0)[2]
+            local before_cursor = line:sub(1, col)
+            local after_cursor = line:sub(col + 1)
+
+            -- Для CSS/SCSS файлов: не показываем автодополнение сразу после скобок
+            if vim.tbl_contains({ "css", "scss", "sass" }, vim.bo.filetype) then
+              -- Проверяем что перед курсором НЕТ букв/цифр (только пробелы или скобки)
+              local no_word_before = not before_cursor:match("[%w_%-]$")
+              -- Если курсор в пустом месте - не показываем
+              if no_word_before then
+                return false
+              end
+            end
+
             -- Для PHP файлов проверяем контекст
             if vim.bo.filetype == "php" then
-              local line = vim.api.nvim_get_current_line()
-              local col = vim.api.nvim_win_get_cursor(0)[2]
-              local before_cursor = line:sub(1, col)
-              local after_cursor = line:sub(col + 1)
-
               -- Отключаем автодополнение между открывающим и закрывающим HTML тегом
               -- Например: <div>|</div>
               if before_cursor:match(">%s*$") and after_cursor:match("^%s*</%w+>") then
