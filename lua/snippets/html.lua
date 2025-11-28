@@ -77,6 +77,23 @@ local shared_snippets = {
       return base
     end, {}),
     i(2),
+    t('">'),
+    i(3),
+    t('</'),
+    rep(1),
+    t(">"),
+  }),
+
+  s("iv", {
+    t("<"),
+    i(1, "div"),
+    t(' class="'),
+    f(function()
+      local reg = vim.fn.getreg("i") or ""
+      local base = reg:match("^(.-__)") or reg
+      return base
+    end, {}),
+    i(2),
     t('"><?php echo $'),
     rep(2),
     t('; ?>'),
@@ -84,6 +101,12 @@ local shared_snippets = {
     t('</'),
     rep(1),
     t(">"),
+  }),
+
+  s("cp", {
+    t("<?php create_picture(my_get_image_id($"),
+    i(1),
+    t(")) ?>"),
   }),
 
   s("d", {
@@ -223,12 +246,6 @@ local shared_snippets = {
     t("['"),
     rep(1), -- повторяет первый insert node
     t("']);"),
-  }),
-
-  s("cp", {
-    t("<?php create_picture("),
-    i(1),
-    t(") ?>"),
   }),
 }
 
