@@ -167,6 +167,10 @@ return {
                   "/home/gaba/.config/nvim/stubs",
                 }
               },
+              -- Форматирование через LSP
+              format = {
+                braces = "psr12",
+              },
             },
           },
         },

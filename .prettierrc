@@ -57,7 +57,8 @@
         "useTabs": false,
         "singleQuote": true,
         "braceStyle": "1tbs",
-        "phpVersion": "8.4"
+        "phpVersion": "8.4",
+        "singleAttributePerLine": true
       }
     }
   ]
