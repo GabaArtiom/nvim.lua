@@ -11,8 +11,8 @@ return {
         ["typescript"] = { "prettierd", "prettier" },
         ["typescriptreact"] = { "prettierd", "prettier" },
         ["vue"] = { "prettierd", "prettier" },
-        ["css"] = { "prettier" },
-        ["scss"] = { "prettier" },
+        ["css"] = { "oxfmt" },
+        ["scss"] = { "oxfmt" },
         ["sass"] = { "prettier" },
         ["less"] = { "prettier" },
         ["html"] = { "prettierd", "prettier" },
@@ -52,7 +52,7 @@ return {
           stdin = true,
         },
         stylelint = {
-          command = vim.fn.expand("~/.config/nvm/versions/node/v22.19.0/bin/stylelint"),
+          command = vim.fn.expand("~/.local/share/nvim/mason/bin/stylelint"),
           args = {
             "--fix",
             "--stdin",
