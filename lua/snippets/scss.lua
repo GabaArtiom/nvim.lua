@@ -3,6 +3,7 @@ local rep = require("luasnip.extras").rep
 local s = ls.snippet
 local t = ls.text_node
 local i = ls.insert_node
+local f = ls.function_node
 
 local css_scss_snippets = {
 
@@ -77,8 +78,20 @@ local css_scss_snippets = {
     t("padding-block: "), i(1), t(";"),
   }),
 
+  s({ trig = "pbl(%d+)", regTrig = true }, {
+    t("padding-block: "),
+    f(function(_, snip) return snip.captures[1] .. "px" end),
+    t(";"),
+  }),
+
   s("pin", {
     t("padding-inline: "), i(1), t(";"),
+  }),
+
+  s({ trig = "pin(%d+)", regTrig = true }, {
+    t("padding-inline: "),
+    f(function(_, snip) return snip.captures[1] .. "px" end),
+    t(";"),
   }),
 
   -- Margin block/inline
@@ -86,8 +99,37 @@ local css_scss_snippets = {
     t("margin-block: "), i(1), t(";"),
   }),
 
+  s({ trig = "mbl(%d+)", regTrig = true }, {
+    t("margin-block: "),
+    f(function(_, snip) return snip.captures[1] .. "px" end),
+    t(";"),
+  }),
+
   s("min", {
     t("margin-inline: "), i(1), t(";"),
+  }),
+
+  s({ trig = "min(%d+)", regTrig = true }, {
+    t("margin-inline: "),
+    f(function(_, snip) return snip.captures[1] .. "px" end),
+    t(";"),
+  }),
+
+  -- Border radius
+  s("bra", {
+    t("border-radius: "), i(1), t(";"),
+  }),
+
+  s({ trig = "bra(%d+)", regTrig = true }, {
+    t("border-radius: "),
+    f(function(_, snip) return snip.captures[1] .. "px" end),
+    t(";"),
+  }),
+
+  s({ trig = "bra(%d+)p", regTrig = true }, {
+    t("border-radius: "),
+    f(function(_, snip) return snip.captures[1] .. "%" end),
+    t(";"),
   }),
 
   s("bf", {

@@ -97,9 +97,76 @@ local function px_to_rem_visual()
   end
 end
 
+-- Функция для конвертации rem в px (весь файл)
+local function rem_to_px()
+  local buf = vim.api.nvim_get_current_buf()
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  local replacements = 0
+
+  for i, line in ipairs(lines) do
+    local new_line = line:gsub("(%d+%.?%d*)rem", function(num)
+      local rem_value = tonumber(num)
+      local px_value = rem_value * 10
+      replacements = replacements + 1
+
+      if px_value == math.floor(px_value) then
+        return string.format("%.0fpx", px_value)
+      else
+        return string.format("%.1fpx", px_value)
+      end
+    end)
+
+    if new_line ~= line then
+      vim.api.nvim_buf_set_lines(buf, i - 1, i, false, { new_line })
+    end
+  end
+
+  if replacements > 0 then
+    vim.notify(string.format("Конвертировано %d значений rem в px", replacements))
+  else
+    vim.notify("Значения rem не найдены")
+  end
+end
+
+-- Функция для конвертации rem в px (выделение)
+local function rem_to_px_visual()
+  local start_pos = vim.fn.getpos("'<")
+  local end_pos = vim.fn.getpos("'>")
+  local start_line = start_pos[2] - 1
+  local end_line = end_pos[2] - 1
+  local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line + 1, false)
+  local replacements = 0
+
+  for i, line in ipairs(lines) do
+    local new_line = line:gsub("(%d+%.?%d*)rem", function(num)
+      local rem_value = tonumber(num)
+      local px_value = rem_value * 10
+      replacements = replacements + 1
+
+      if px_value == math.floor(px_value) then
+        return string.format("%.0fpx", px_value)
+      else
+        return string.format("%.1fpx", px_value)
+      end
+    end)
+
+    if new_line ~= line then
+      vim.api.nvim_buf_set_lines(0, start_line + i - 1, start_line + i, false, { new_line })
+    end
+  end
+
+  if replacements > 0 then
+    vim.notify(string.format("Конвертировано %d значений rem в px", replacements))
+  else
+    vim.notify("Значения rem не найдены в выделенном тексте")
+  end
+end
+
 -- Создаем команды
 vim.api.nvim_create_user_command("PxToRem", px_to_rem, {})
 vim.api.nvim_create_user_command("PxToRemVisual", px_to_rem_visual, { range = true })
+vim.api.nvim_create_user_command("RemToPx", rem_to_px, {})
+vim.api.nvim_create_user_command("RemToPxVisual", rem_to_px_visual, { range = true })
 
 -- Настраиваем keymaps (можешь изменить на свои)
 vim.keymap.set("n", "<leader>pr", px_to_rem, { desc = "Convert px to rem (whole file)" })
