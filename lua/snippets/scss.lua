@@ -43,6 +43,14 @@ local css_scss_snippets = {
     t({ "", "}" }),
   }),
 
+  s({ trig = "mcus(%d+)", regTrig = true }, {
+    t("@media screen and (max-width: "),
+    f(function(_, snip) return snip.captures[1] end),
+    t({ "px) {", "  " }),
+    i(1),
+    t({ "", "}" }),
+  }),
+
   s("pa", {
     t({
       "position: absolute;",
