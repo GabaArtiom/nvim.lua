@@ -157,9 +157,30 @@ return {
         ["<C-k>"] = { "select_prev", "fallback" },
         ["<CR>"] = {
           function(cmp)
+            -- Сначала проверяем regex-сниппеты LuaSnip (pbl12, bra50 и т.д.)
+            local ls = require("luasnip")
+            if ls.expandable() then
+              -- Проверяем что это именно regex-сниппет, а не обычный
+              local line = vim.api.nvim_get_current_line()
+              local col = vim.api.nvim_win_get_cursor(0)[2]
+              local before = line:sub(1, col)
+              local word = before:match("[%w_%-]+$") or ""
+              -- Если слово содержит цифры после букв — это regex-сниппет, раскрываем сразу
+              if word:match("^%a+%d+%a?$") then
+                vim.schedule(function() ls.expand() end)
+                return
+              end
+            end
+
             -- Если completion menu видимо - принимаем выбор
             if cmp.is_visible() then
               return cmp.accept()
+            end
+
+            -- Если LuaSnip может раскрыть обычный сниппет
+            if ls.expandable() then
+              vim.schedule(function() ls.expand() end)
+              return
             end
 
             local line = vim.api.nvim_get_current_line()
