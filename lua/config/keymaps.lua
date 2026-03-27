@@ -185,19 +185,9 @@ end, { desc = "Debug formatters" })
 -- Alternative PHP formatting with php-cs-fixer (for pure PHP files)
 map("n", "<leader>fp", function()
   if vim.bo.filetype == "php" then
-    -- Сохраняем view (включая фолды и позицию курсора)
     local view = vim.fn.winsaveview()
-
-    local conform = require("conform")
-    conform.format({
-      formatters = { "php-cs-fixer" },
-      async = false,
-    })
-
-    -- Восстанавливаем view
-    vim.defer_fn(function()
-      pcall(vim.fn.winrestview, view)
-    end, 50)
+    require("conform").format({ formatters = { "php-cs-fixer" }, async = false })
+    vim.defer_fn(function() pcall(vim.fn.winrestview, view) end, 50)
   else
     print("php-cs-fixer is only for PHP files")
   end
