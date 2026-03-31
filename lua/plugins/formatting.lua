@@ -28,10 +28,15 @@ return {
       },
       formatters = {
         ["prettierd-blade"] = {
-          command = vim.fn.expand("~/.local/share/nvim/mason/bin/prettierd"),
+          command = vim.fn.expand("~/.local/share/nvim/mason/bin/prettier"),
           args = function(_, ctx)
             local basename = vim.fn.fnamemodify(ctx.filename, ":t"):gsub("%.php$", ".blade.php")
-            return { basename }
+            return {
+              "--plugin",
+              vim.fn.expand("~/.local/share/nvim/mason/packages/prettier/node_modules/prettier-plugin-blade/dist/index.js"),
+              "--stdin-filepath",
+              basename,
+            }
           end,
           stdin = true,
         },
