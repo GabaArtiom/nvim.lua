@@ -28,69 +28,16 @@ return {
       },
       formatters = {
         ["prettierd-blade"] = {
-          command = vim.fn.expand("~/.local/share/nvim/mason/bin/prettier"),
+          command = vim.fn.expand("~/.local/share/nvim/mason/bin/prettierd"),
           args = function(_, ctx)
-            local basename = vim.fn.fnamemodify(ctx.filename, ":t"):gsub("%.php$", ".blade.php")
-            return {
-              "--plugin",
-              vim.fn.expand("~/.local/share/nvim/mason/packages/prettier/node_modules/prettier-plugin-blade/dist/index.js"),
-              "--stdin-filepath",
-              basename,
-            }
+            return { (vim.fn.fnamemodify(ctx.filename, ":t"):gsub("%.php$", ".blade.php")) }
           end,
-          stdin = true,
-        },
-        ["js-beautify-php"] = {
-          command = vim.fn.expand("~/.config/nvm/versions/node/v20.19.1/bin/js-beautify"),
-          args = { "--type=html", "--templating=php", "--indent-size=2", "-f", "-" },
-          stdin = true,
-        },
-        ["blade-formatter"] = {
-          command = "blade-formatter",
-          args = {
-            "--stdin",
-            "--config",
-            vim.fn.expand("~/.config/nvim/.bladeformatterrc.json"),
+          env = {
+            PRETTIERD_DEFAULT_CONFIG = vim.fn.expand("~/.prettierrc"),
           },
-          stdin = true,
-        },
-        ["php-cs-fixer"] = {
-          command = vim.fn.expand("~/.local/bin/php-cs-fixer"),
-          args = {
-            "fix",
-            "--config=" .. vim.fn.expand("~/.config/nvim/.php-cs-fixer.php"),
-            "--using-cache=no",
-            "$FILENAME",
-          },
-          stdin = false,
-        },
-        prettier = {
-          command = vim.fn.expand("~/.local/share/nvim/mason/bin/prettier"),
-          args = { "--stdin-filepath", "$FILENAME" },
-          stdin = true,
-        },
-        ["prettier-php"] = {
-          command = vim.fn.expand("~/.local/share/nvim/mason/bin/prettier"),
-          args = {
-            "--plugin="
-              .. vim.fn.expand(
-                "~/.local/share/nvim/mason/packages/prettier/node_modules/@prettier/plugin-php/src/index.mjs"
-              ),
-            "--stdin-filepath",
-            "$FILENAME",
-          },
-          stdin = true,
-        },
-        stylelint = {
-          command = vim.fn.expand("~/.local/share/nvim/mason/bin/stylelint"),
-          args = {
-            "--fix",
-            "--stdin",
-            "--stdin-filename",
-            "$FILENAME",
-            "--config",
-            vim.fn.expand("~/.config/nvim/.stylelintrc.json"),
-          },
+          cwd = function()
+            return "/tmp"
+          end,
           stdin = true,
         },
       },
