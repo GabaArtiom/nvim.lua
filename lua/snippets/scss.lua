@@ -43,7 +43,7 @@ local css_scss_snippets = {
     t({ "", "}" }),
   }),
 
-  s({ trig = "mcus(%d+)", regTrig = true }, {
+  s({ trig = "mc(%d%d%d+)", regTrig = true }, {
     t("@media screen and (max-width: "),
     f(function(_, snip) return snip.captures[1] end),
     t({ "px) {", "  " }),
