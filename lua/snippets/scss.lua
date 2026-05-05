@@ -88,6 +88,14 @@ local css_scss_snippets = {
     }),
   }),
 
+  s("fldcr", {
+    t("flex-direction: column-reverse;"),
+  }),
+
+  s("fldrr", {
+    t("flex-direction: row-reverse;"),
+  }),
+
   s("vr", {
     t("var(--"), i(1), t(")"),
   }),
