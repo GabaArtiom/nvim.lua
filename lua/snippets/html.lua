@@ -9,7 +9,11 @@ local f = ls.function_node
 local shared_snippets = {
 
   s("ctr", {
-    t('<div class="container">'),
+    f(function()
+      local reg = vim.fn.getreg("i") or ""
+      local base = reg:match("^(.-__)") or reg
+      return '<div class="' .. base .. 'container container">'
+    end, {}),
     i(1),
     t("</div>"),
   }),

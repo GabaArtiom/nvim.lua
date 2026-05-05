@@ -166,7 +166,7 @@ return {
               local before = line:sub(1, col)
               local word = before:match("[%w_%-]+$") or ""
               -- Если слово содержит цифры после букв — это regex-сниппет, раскрываем сразу
-              if word:match("^%a+%d+%a?$") then
+              if word:match("^%a+%d+%a?$") or word:match("^%a+%d+%-%d+$") then
                 vim.schedule(function() ls.expand() end)
                 return
               end

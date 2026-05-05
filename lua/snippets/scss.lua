@@ -7,6 +7,17 @@ local f = ls.function_node
 
 local css_scss_snippets = {
 
+  s("dfc", {
+    t({ "display: flex;", "justify-content: center;", "align-items: center;" }),
+  }),
+
+  s("mch", {
+    t("@media (hover: hover) {"),
+    t({ "", "  " }),
+    i(1),
+    t({ "", "}" }),
+  }),
+
   s("mc5", {
     t("@media screen and (max-width: 576px) {"),
     t({ "", "  " }),
@@ -86,6 +97,12 @@ local css_scss_snippets = {
     t("padding-block: "), i(1), t(";"),
   }),
 
+  s({ trig = "pbl(%d+)-(%d+)", regTrig = true }, {
+    t("padding-block: "),
+    f(function(_, snip) return snip.captures[1] .. "px " .. snip.captures[2] .. "px" end),
+    t(";"),
+  }),
+
   s({ trig = "pbl(%d+)", regTrig = true }, {
     t("padding-block: "),
     f(function(_, snip) return snip.captures[1] .. "px" end),
@@ -94,6 +111,12 @@ local css_scss_snippets = {
 
   s("pin", {
     t("padding-inline: "), i(1), t(";"),
+  }),
+
+  s({ trig = "pin(%d+)-(%d+)", regTrig = true }, {
+    t("padding-inline: "),
+    f(function(_, snip) return snip.captures[1] .. "px " .. snip.captures[2] .. "px" end),
+    t(";"),
   }),
 
   s({ trig = "pin(%d+)", regTrig = true }, {
@@ -107,6 +130,12 @@ local css_scss_snippets = {
     t("margin-block: "), i(1), t(";"),
   }),
 
+  s({ trig = "mbl(%d+)-(%d+)", regTrig = true }, {
+    t("margin-block: "),
+    f(function(_, snip) return snip.captures[1] .. "px " .. snip.captures[2] .. "px" end),
+    t(";"),
+  }),
+
   s({ trig = "mbl(%d+)", regTrig = true }, {
     t("margin-block: "),
     f(function(_, snip) return snip.captures[1] .. "px" end),
@@ -115,6 +144,12 @@ local css_scss_snippets = {
 
   s("min", {
     t("margin-inline: "), i(1), t(";"),
+  }),
+
+  s({ trig = "min(%d+)-(%d+)", regTrig = true }, {
+    t("margin-inline: "),
+    f(function(_, snip) return snip.captures[1] .. "px " .. snip.captures[2] .. "px" end),
+    t(";"),
   }),
 
   s({ trig = "min(%d+)", regTrig = true }, {
