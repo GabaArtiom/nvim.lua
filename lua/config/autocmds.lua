@@ -138,6 +138,21 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- Invalidate LuaSnip docstring cache so completion previews reflect the current
+-- value of register `i` (BEM base class) instead of a stale snapshot.
+vim.api.nvim_create_autocmd("InsertEnter", {
+  callback = function()
+    local ok, ls = pcall(require, "luasnip")
+    if not ok then return end
+    local ft_snippets = ls.get_snippets(vim.bo.filetype) or {}
+    for _, snip in pairs(ft_snippets) do
+      if type(snip) == "table" then
+        snip._docstring = nil
+      end
+    end
+  end,
+})
+
 -- SCSS/SASS shortcuts
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "scss", "sass" },

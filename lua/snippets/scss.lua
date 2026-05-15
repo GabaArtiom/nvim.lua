@@ -171,6 +171,33 @@ local css_scss_snippets = {
     t("border-radius: "), i(1), t(";"),
   }),
 
+  s({ trig = "bra(%d+)-(%d+)-(%d+)-(%d+)", regTrig = true }, {
+    t("border-radius: "),
+    f(function(_, snip)
+      local c = snip.captures
+      return c[1] .. "px " .. c[2] .. "px " .. c[3] .. "px " .. c[4] .. "px"
+    end),
+    t(";"),
+  }),
+
+  s({ trig = "bra(%d+)-(%d+)-(%d+)", regTrig = true }, {
+    t("border-radius: "),
+    f(function(_, snip)
+      local c = snip.captures
+      return c[1] .. "px " .. c[2] .. "px " .. c[3] .. "px"
+    end),
+    t(";"),
+  }),
+
+  s({ trig = "bra(%d+)-(%d+)", regTrig = true }, {
+    t("border-radius: "),
+    f(function(_, snip)
+      local c = snip.captures
+      return c[1] .. "px " .. c[2] .. "px"
+    end),
+    t(";"),
+  }),
+
   s({ trig = "bra(%d+)", regTrig = true }, {
     t("border-radius: "),
     f(function(_, snip) return snip.captures[1] .. "px" end),
