@@ -73,6 +73,79 @@ function M.toggle_floating_terminal()
 end
 
 
+-- Block comment toggle for CSS/SCSS
+-- Wraps the visual selection in a single /* */ block instead of commenting
+-- every line separately. If the selection is anywhere inside an existing
+-- block (cursor need not touch the /* or */ lines), the wrapper is removed.
+function M.toggle_block_comment()
+  local s = vim.fn.line("v")
+  local e = vim.fn.line(".")
+  if s > e then
+    s, e = e, s
+  end
+
+  -- Leave visual mode so the buffer edit below is not fighting the selection
+  vim.cmd("normal! \27")
+
+  local total = vim.api.nvim_buf_line_count(0)
+  local function trimmed(lnum)
+    return vim.trim(vim.fn.getline(lnum))
+  end
+
+  -- Find an enclosing block: scan up from the selection start and down from
+  -- the selection end. We are inside a block only if the nearest delimiter
+  -- above is `/*` and the nearest one below is `*/`.
+  local open_line
+  for l = s, 1, -1 do
+    local t = trimmed(l)
+    if t == "/*" then
+      open_line = l
+      break
+    elseif t == "*/" and l < s then
+      break
+    end
+  end
+
+  local close_line
+  for l = e, total do
+    local t = trimmed(l)
+    if t == "*/" then
+      close_line = l
+      break
+    elseif t == "/*" and l > e then
+      break
+    end
+  end
+
+  if open_line and close_line then
+    -- Unwrap: drop the delimiter lines (bottom first to keep indices valid)
+    vim.api.nvim_buf_set_lines(0, close_line - 1, close_line, false, {})
+    vim.api.nvim_buf_set_lines(0, open_line - 1, open_line, false, {})
+    return
+  end
+
+  -- Wrap: indent the delimiters to the shallowest non-blank line
+  local lines = vim.api.nvim_buf_get_lines(0, s - 1, e, false)
+  if #lines == 0 then
+    return
+  end
+
+  local indent
+  for _, line in ipairs(lines) do
+    if line:match("%S") then
+      local width = #line:match("^%s*")
+      if not indent or width < indent then
+        indent = width
+      end
+    end
+  end
+  indent = string.rep(" ", indent or 0)
+  table.insert(lines, 1, indent .. "/*")
+  table.insert(lines, indent .. "*/")
+
+  vim.api.nvim_buf_set_lines(0, s - 1, e, false, lines)
+end
+
 -- Setup function to register keymaps
 function M.setup()
   local map = vim.keymap.set

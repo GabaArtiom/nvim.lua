@@ -4,9 +4,11 @@ return {
     opts = {
       lang = {
         css = "/* %s */",
-        scss = "/* %s */",
-        sass = "/* %s */",
-        less = "/* %s */",
+        -- First entry is used for commenting; all entries are recognised when
+        -- uncommenting, so `gcc` also toggles off legacy `//` line comments.
+        scss = { "/* %s */", "// %s" },
+        sass = { "/* %s */", "// %s" },
+        less = { "/* %s */", "// %s" },
       },
     },
     event = "VeryLazy",

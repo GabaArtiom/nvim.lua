@@ -135,8 +135,32 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.commentstring = "/* %s */"
     map("i", "dfc", "display: flex;<CR>justify-content: center;<CR>align-items: center;", { desc = "Flex center", buffer = true })
     map("i", "dgc", "display: grid;<CR>place-items: center;", { desc = "Grid center", buffer = true })
+    map("x", "gc", function()
+      require("config.functions").toggle_block_comment()
+    end, { desc = "Block comment selection", buffer = true })
   end,
 })
+
+-- Guard against an upstream bug in vim.lsp.inlay_hint where stale hint positions
+-- can exceed the current line's byte length, crashing nvim_buf_set_extmark and
+-- spamming "Invalid 'col': out of range" errors via the decoration provider.
+-- Wrap nvim_buf_set_extmark in pcall just for the inlay-hint namespace.
+do
+  local orig = vim.api.nvim_buf_set_extmark
+  local ns_cache
+  vim.api.nvim_buf_set_extmark = function(bufnr, ns, lnum, col, opts)
+    if not ns_cache then
+      local all = vim.api.nvim_get_namespaces()
+      ns_cache = all["nvim.lsp.inlayhint"]
+    end
+    if ns == ns_cache then
+      local ok, res = pcall(orig, bufnr, ns, lnum, col, opts)
+      if ok then return res end
+      return nil
+    end
+    return orig(bufnr, ns, lnum, col, opts)
+  end
+end
 
 -- Invalidate LuaSnip docstring cache so completion previews reflect the current
 -- value of register `i` (BEM base class) instead of a stale snapshot.
@@ -159,6 +183,9 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     vim.opt_local.commentstring = "/* %s */"
     map("i", "<C-n>", "<CR>&<Space>", { desc = "SCSS nesting", buffer = true })
+    map("x", "gc", function()
+      require("config.functions").toggle_block_comment()
+    end, { desc = "Block comment selection", buffer = true })
   end,
 })
 
