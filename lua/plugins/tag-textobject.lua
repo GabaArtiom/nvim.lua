@@ -112,13 +112,88 @@ local function region_contains(outer, inner)
   )
 end
 
+-- Look on `row` for a tag that opens at or after `col` (0-based). Returns the
+-- 0-based column right after that tag's `>` (i.e. a position guaranteed to sit
+-- inside the tag's inside-region), or nil if none found on this line.
+local function inline_tag_inside_col(row, col)
+  local line = vim.api.nvim_buf_get_lines(0, row, row + 1, false)[1] or ""
+  local from = col + 1
+  while true do
+    local lt = line:find("<", from, true)
+    if not lt then return nil end
+    if line:sub(lt + 1, lt + 1) ~= "/" then
+      local gt = line:find(">", lt + 1, true)
+      if gt then
+        return gt -- 0-based column of the byte just after `>`
+      end
+    end
+    from = lt + 1
+  end
+end
+
 -- mini.ai custom textobject. Returns a single region (which mini.ai uses
 -- verbatim), so counts and consecutive `vit` expansion are handled here:
 -- each step picks the smallest tag region that strictly contains the
 -- previous reference (cursor for `cit`, current selection for repeated `vit`).
 local function tag_textobject(ai_type, _, opts)
   local pos = vim.api.nvim_win_get_cursor(0)
-  local nodes = enclosing_elements(pos[1] - 1, pos[2])
+  local row, col = pos[1] - 1, pos[2]
+
+  -- Vim-style lookahead: if the cursor sits just before a tag opening on the
+  -- current line (e.g. cursor on `1` in `1<div></div>`), pretend the cursor
+  -- is inside that tag instead of escalating to a parent that started on a
+  -- previous line. Only do this for the initial cursor-point reference —
+  -- repeated `vit` expansion must keep growing the existing selection.
+  local ref = opts.reference_region
+  local is_point = ref and ref.from
+    and (not ref.to or (ref.from.line == ref.to.line and ref.from.col == ref.to.col))
+
+  local nodes = enclosing_elements(row, col)
+
+  -- Vim-style lookahead for the initial cursor-point reference. If the cursor
+  -- is on a line that touches an enclosing element's start_tag or end_tag
+  -- (anywhere — inside the tag itself, or before/after it on the same line),
+  -- snap the reference into that element's inside-region so `cit` targets it
+  -- instead of escalating to a parent that started on an earlier line.
+  -- Falls back to a forward `<…>` scan on the cursor line for cases where the
+  -- cursor isn't inside any element at all.
+  -- Repeated `vit` expansion (non-point reference) is left untouched so the
+  -- existing selection keeps growing outward.
+  if is_point then
+    local advanced_ref
+    for _, node in ipairs(nodes) do
+      local region = to_region(node, "i")
+      if region and region.to then
+        local open = child_by_type(node, { "start_tag", "opening_element" })
+        local close = child_by_type(node, { "end_tag", "closing_element" })
+        local touches = false
+        if open then
+          local osr, _, oer = open:range()
+          if row >= osr and row <= oer then touches = true end
+        end
+        if not touches and close then
+          local csr, _, cer = close:range()
+          if row >= csr and row <= cer then touches = true end
+        end
+        if touches then
+          advanced_ref = { from = region.from }
+          break
+        end
+      end
+    end
+    if not advanced_ref then
+      local fwd = inline_tag_inside_col(row, col)
+      if fwd then
+        advanced_ref = { from = { line = row + 1, col = fwd + 1 } }
+      end
+    end
+    if advanced_ref then
+      row = advanced_ref.from.line - 1
+      col = advanced_ref.from.col - 1
+      opts.reference_region = advanced_ref
+      nodes = enclosing_elements(row, col)
+    end
+  end
 
   local regions = {}
   for _, node in ipairs(nodes) do
