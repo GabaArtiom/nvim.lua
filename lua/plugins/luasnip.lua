@@ -13,6 +13,23 @@ return {
       local i = ls.insert_node
       local f = ls.function_node
 
+      -- Guard against an upstream LuaSnip bug (str.lua multiline_substr: "attempt
+      -- to index a nil value") that crashes on <Tab>/<S-Tab> jumps. On jump,
+      -- node_update_dependents_preserve_position calls store_cursor_node_relative
+      -- OUTSIDE the pcall that wraps the dependents-update, so when a node's
+      -- extmark region goes stale (common on nvim 0.12), the error escapes and
+      -- breaks the whole snippet session. Wrap the store call so a failure
+      -- degrades to "cursor not perfectly restored" instead of a crash.
+      local node_util = require("luasnip.nodes.util")
+      local orig_store = node_util.store_cursor_node_relative
+      node_util.store_cursor_node_relative = function(node, opts)
+        local ok, res = pcall(orig_store, node, opts)
+        if ok then
+          return res
+        end
+        return { store_ids = {} }
+      end
+
       -- Загружаем friendly-snippets полностью
       require("luasnip.loaders.from_vscode").lazy_load()
 

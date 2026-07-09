@@ -145,7 +145,10 @@ map("t", "<C-;>", function()
 end, { desc = "Toggle floating terminal" })
 
 -- Сохранить и выйти
-map("n", "<leader>qq", "<cmd>wqa<cr>", { desc = "Сохранить и выйти" })
+map("n", "<leader>qq", function()
+  vim.cmd("silent! wa") -- сохранить все файловые буферы (терминал/безымянные пропускаются)
+  vim.cmd("qa!") -- выйти, принудительно завершив работающие job-ы терминала
+end, { desc = "Сохранить и выйти" })
 map("n", "<leader>QQ", "<cmd>qa!<cr>", { desc = "Выход без сохранений" })
 
 -- Изменение размера окна с шагом

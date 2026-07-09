@@ -11,6 +11,22 @@ local css_scss_snippets = {
     t({ "display: flex;", "justify-content: center;", "align-items: center;" }),
   }),
 
+  s("mina", {
+    t("margin-inline: auto;"),
+  }),
+
+  s("mbla", {
+    t("margin-block: auto;"),
+  }),
+
+  s("pina", {
+    t("padding-inline: auto;"),
+  }),
+
+  s("pbla", {
+    t("padding-block: auto;"),
+  }),
+
   s("mch", {
     t("@media (hover: hover) {"),
     t({ "", "  " }),

@@ -22,6 +22,10 @@ local shared_snippets = {
     t('target="_blank"'),
   }),
 
+  s("tbr", {
+    t('target="_blank" rel="noopener noreferrer"'),
+  }),
+
   s("cl", {
     t('class="'),
     i(1),
@@ -73,7 +77,7 @@ local shared_snippets = {
 
   s("dvv", {
     t("<"),
-    i(1, "div"),
+    i(1),
     t(' class="'),
     f(function()
       local reg = vim.fn.getreg("i") or ""
@@ -110,7 +114,7 @@ local shared_snippets = {
   s("cp", {
     t("<?php create_picture(my_get_image_id($"),
     i(1),
-    t(")) ?>"),
+    t("), 'full', true, false, false); ?>"),
   }),
 
   s("d", {

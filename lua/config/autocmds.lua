@@ -177,6 +177,13 @@ vim.api.nvim_create_autocmd("InsertEnter", {
   end,
 })
 
+-- Disable Neovim's built-in LSP document-color background highlight (enabled by
+-- default since 0.12). It draws a background box over color values, duplicating
+-- NvChad colorify's swatch, which is the only indicator we want to keep.
+if vim.lsp.document_color then
+  vim.lsp.document_color.enable(false)
+end
+
 -- SCSS/SASS shortcuts
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "scss", "sass" },
