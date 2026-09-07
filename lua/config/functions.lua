@@ -50,6 +50,15 @@ function M.toggle_floating_terminal()
   -- Создать буфер если его нет или он не валидный
   if not terminal_state.buf or not vim.api.nvim_buf_is_valid(terminal_state.buf) then
     terminal_state.buf = vim.api.nvim_create_buf(false, true)
+
+    -- Локальная навигация внутри плавающего терминала.
+    -- Глобальные <C-j>/<C-k> в terminal-mode делают `wincmd j/k` — это просто
+    -- перекидывает фокус в редактор за флоатом. Здесь вместо этого пробрасываем
+    -- стрелки прямо в терминал, оставаясь в режиме вставки: так навигация по
+    -- истории команд / пунктам меню (fzf, lazygit, автодополнение) работает.
+    local opts = { buffer = terminal_state.buf, silent = true }
+    vim.keymap.set("t", "<C-j>", "<Down>", opts)
+    vim.keymap.set("t", "<C-k>", "<Up>", opts)
   end
 
   -- Открыть плавающее окно

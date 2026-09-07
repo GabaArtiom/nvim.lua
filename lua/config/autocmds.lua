@@ -70,6 +70,79 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   end,
 })
 
+-- Не давать фолдам раскрываться при сохранении.
+-- UFO на BufWritePost форсированно пересобирает фолды и воссоздаёт их из своего
+-- состояния (extmark'и). Фолды, закрытые нативными zc/za, он не отслеживает и
+-- теряет. Поэтому запоминаем закрытые фолды до записи и закрываем обратно после
+-- того, как UFO отработает (debounce 300мс + асинхронный провайдер).
+local fold_group = vim.api.nvim_create_augroup("PreserveFoldsOnWrite", { clear = true })
+local pending_folds = {}
+
+local function capture_closed_folds(bufnr)
+  local folds = {}
+  local win = vim.fn.bufwinid(bufnr)
+  if win == -1 then
+    return folds
+  end
+  vim.api.nvim_win_call(win, function()
+    local lnum = 1
+    local last = vim.api.nvim_buf_line_count(bufnr)
+    while lnum <= last do
+      local start = vim.fn.foldclosed(lnum)
+      if start ~= -1 then
+        local stop = vim.fn.foldclosedend(lnum)
+        table.insert(folds, start)
+        lnum = stop + 1
+      else
+        lnum = lnum + 1
+      end
+    end
+  end)
+  return folds
+end
+
+local function restore_closed_folds(bufnr, folds)
+  local win = vim.fn.bufwinid(bufnr)
+  if win == -1 then
+    return
+  end
+  vim.api.nvim_win_call(win, function()
+    local view = vim.fn.winsaveview()
+    for _, lnum in ipairs(folds) do
+      if lnum <= vim.api.nvim_buf_line_count(bufnr) and vim.fn.foldlevel(lnum) > 0 and vim.fn.foldclosed(lnum) == -1 then
+        pcall(vim.api.nvim_win_set_cursor, win, { lnum, 0 })
+        pcall(vim.cmd, "silent! normal! zc")
+      end
+    end
+    vim.fn.winrestview(view)
+  end)
+end
+
+vim.api.nvim_create_autocmd("BufWritePre", {
+  group = fold_group,
+  pattern = "*",
+  callback = function(ev)
+    pending_folds[ev.buf] = capture_closed_folds(ev.buf)
+  end,
+})
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+  group = fold_group,
+  pattern = "*",
+  callback = function(ev)
+    local folds = pending_folds[ev.buf]
+    pending_folds[ev.buf] = nil
+    if not folds or #folds == 0 then
+      return
+    end
+    vim.defer_fn(function()
+      if vim.api.nvim_buf_is_valid(ev.buf) then
+        restore_closed_folds(ev.buf, folds)
+      end
+    end, 400)
+  end,
+})
+
 -- File-type specific keymaps
 local map = vim.keymap.set
 

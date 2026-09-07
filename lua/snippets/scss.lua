@@ -11,6 +11,14 @@ local css_scss_snippets = {
     t({ "display: flex;", "justify-content: center;", "align-items: center;" }),
   }),
 
+  s("wfc", {
+    t("width: fit-content;"),
+  }),
+
+  s("hfc", {
+    t("height: fit-content;"),
+  }),
+
   s("mina", {
     t("margin-inline: auto;"),
   }),
